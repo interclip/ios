@@ -1,0 +1,589 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9072C1A2C940005CB7A /* InterclipApp.swift */; };
+		DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9092C1A2C940005CB7A /* ContentView.swift */; };
+		DC72A90C2C1A2C950005CB7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC72A90B2C1A2C950005CB7A /* Assets.xcassets */; };
+		DC72A90F2C1A2C950005CB7A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC72A90E2C1A2C950005CB7A /* Preview Assets.xcassets */; };
+		DC72A9192C1A2C950005CB7A /* InterclipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9182C1A2C950005CB7A /* InterclipTests.swift */; };
+		DC72A9232C1A2C950005CB7A /* InterclipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */; };
+		DC72A9252C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DC72A9152C1A2C950005CB7A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC72A8FC2C1A2C940005CB7A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DC72A9032C1A2C940005CB7A;
+			remoteInfo = Interclip;
+		};
+		DC72A91F2C1A2C950005CB7A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC72A8FC2C1A2C940005CB7A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DC72A9032C1A2C940005CB7A;
+			remoteInfo = Interclip;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DC72A9042C1A2C940005CB7A /* Interclip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Interclip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC72A9072C1A2C940005CB7A /* InterclipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipApp.swift; sourceTree = "<group>"; };
+		DC72A9092C1A2C940005CB7A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		DC72A90B2C1A2C950005CB7A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DC72A90E2C1A2C950005CB7A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		DC72A9142C1A2C950005CB7A /* InterclipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InterclipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC72A9182C1A2C950005CB7A /* InterclipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipTests.swift; sourceTree = "<group>"; };
+		DC72A91E2C1A2C950005CB7A /* InterclipUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InterclipUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipUITests.swift; sourceTree = "<group>"; };
+		DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DC72A9012C1A2C940005CB7A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC72A9112C1A2C950005CB7A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC72A91B2C1A2C950005CB7A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DC72A8FB2C1A2C940005CB7A = {
+			isa = PBXGroup;
+			children = (
+				DC72A9062C1A2C940005CB7A /* Interclip */,
+				DC72A9172C1A2C950005CB7A /* InterclipTests */,
+				DC72A9212C1A2C950005CB7A /* InterclipUITests */,
+				DC72A9052C1A2C940005CB7A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DC72A9052C1A2C940005CB7A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DC72A9042C1A2C940005CB7A /* Interclip.app */,
+				DC72A9142C1A2C950005CB7A /* InterclipTests.xctest */,
+				DC72A91E2C1A2C950005CB7A /* InterclipUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DC72A9062C1A2C940005CB7A /* Interclip */ = {
+			isa = PBXGroup;
+			children = (
+				DC72A9072C1A2C940005CB7A /* InterclipApp.swift */,
+				DC72A9092C1A2C940005CB7A /* ContentView.swift */,
+				DC72A90B2C1A2C950005CB7A /* Assets.xcassets */,
+				DC72A90D2C1A2C950005CB7A /* Preview Content */,
+			);
+			path = Interclip;
+			sourceTree = "<group>";
+		};
+		DC72A90D2C1A2C950005CB7A /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				DC72A90E2C1A2C950005CB7A /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		DC72A9172C1A2C950005CB7A /* InterclipTests */ = {
+			isa = PBXGroup;
+			children = (
+				DC72A9182C1A2C950005CB7A /* InterclipTests.swift */,
+			);
+			path = InterclipTests;
+			sourceTree = "<group>";
+		};
+		DC72A9212C1A2C950005CB7A /* InterclipUITests */ = {
+			isa = PBXGroup;
+			children = (
+				DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */,
+				DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */,
+			);
+			path = InterclipUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DC72A9032C1A2C940005CB7A /* Interclip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DC72A9282C1A2C950005CB7A /* Build configuration list for PBXNativeTarget "Interclip" */;
+			buildPhases = (
+				DC72A9002C1A2C940005CB7A /* Sources */,
+				DC72A9012C1A2C940005CB7A /* Frameworks */,
+				DC72A9022C1A2C940005CB7A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Interclip;
+			productName = Interclip;
+			productReference = DC72A9042C1A2C940005CB7A /* Interclip.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DC72A9132C1A2C950005CB7A /* InterclipTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DC72A92B2C1A2C950005CB7A /* Build configuration list for PBXNativeTarget "InterclipTests" */;
+			buildPhases = (
+				DC72A9102C1A2C950005CB7A /* Sources */,
+				DC72A9112C1A2C950005CB7A /* Frameworks */,
+				DC72A9122C1A2C950005CB7A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DC72A9162C1A2C950005CB7A /* PBXTargetDependency */,
+			);
+			name = InterclipTests;
+			productName = InterclipTests;
+			productReference = DC72A9142C1A2C950005CB7A /* InterclipTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DC72A91D2C1A2C950005CB7A /* InterclipUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DC72A92E2C1A2C950005CB7A /* Build configuration list for PBXNativeTarget "InterclipUITests" */;
+			buildPhases = (
+				DC72A91A2C1A2C950005CB7A /* Sources */,
+				DC72A91B2C1A2C950005CB7A /* Frameworks */,
+				DC72A91C2C1A2C950005CB7A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DC72A9202C1A2C950005CB7A /* PBXTargetDependency */,
+			);
+			name = InterclipUITests;
+			productName = InterclipUITests;
+			productReference = DC72A91E2C1A2C950005CB7A /* InterclipUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DC72A8FC2C1A2C940005CB7A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					DC72A9032C1A2C940005CB7A = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					DC72A9132C1A2C950005CB7A = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = DC72A9032C1A2C940005CB7A;
+					};
+					DC72A91D2C1A2C950005CB7A = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = DC72A9032C1A2C940005CB7A;
+					};
+				};
+			};
+			buildConfigurationList = DC72A8FF2C1A2C940005CB7A /* Build configuration list for PBXProject "Interclip" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DC72A8FB2C1A2C940005CB7A;
+			productRefGroup = DC72A9052C1A2C940005CB7A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DC72A9032C1A2C940005CB7A /* Interclip */,
+				DC72A9132C1A2C950005CB7A /* InterclipTests */,
+				DC72A91D2C1A2C950005CB7A /* InterclipUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DC72A9022C1A2C940005CB7A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC72A90F2C1A2C950005CB7A /* Preview Assets.xcassets in Resources */,
+				DC72A90C2C1A2C950005CB7A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC72A9122C1A2C950005CB7A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC72A91C2C1A2C950005CB7A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DC72A9002C1A2C940005CB7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */,
+				DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC72A9102C1A2C950005CB7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC72A9192C1A2C950005CB7A /* InterclipTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DC72A91A2C1A2C950005CB7A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC72A9232C1A2C950005CB7A /* InterclipUITests.swift in Sources */,
+				DC72A9252C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DC72A9162C1A2C950005CB7A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DC72A9032C1A2C940005CB7A /* Interclip */;
+			targetProxy = DC72A9152C1A2C950005CB7A /* PBXContainerItemProxy */;
+		};
+		DC72A9202C1A2C950005CB7A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DC72A9032C1A2C940005CB7A /* Interclip */;
+			targetProxy = DC72A91F2C1A2C950005CB7A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DC72A9262C1A2C950005CB7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DC72A9272C1A2C950005CB7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DC72A9292C1A2C950005CB7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Interclip/Preview Content\"";
+				DEVELOPMENT_TEAM = Q89SD6CKHQ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.filiptronicek.Interclip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DC72A92A2C1A2C950005CB7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Interclip/Preview Content\"";
+				DEVELOPMENT_TEAM = Q89SD6CKHQ;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.filiptronicek.Interclip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		DC72A92C2C1A2C950005CB7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q89SD6CKHQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.filiptronicek.InterclipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Interclip.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Interclip";
+			};
+			name = Debug;
+		};
+		DC72A92D2C1A2C950005CB7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q89SD6CKHQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.filiptronicek.InterclipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Interclip.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Interclip";
+			};
+			name = Release;
+		};
+		DC72A92F2C1A2C950005CB7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q89SD6CKHQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.filiptronicek.InterclipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Interclip;
+			};
+			name = Debug;
+		};
+		DC72A9302C1A2C950005CB7A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Q89SD6CKHQ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.filiptronicek.InterclipUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Interclip;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DC72A8FF2C1A2C940005CB7A /* Build configuration list for PBXProject "Interclip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC72A9262C1A2C950005CB7A /* Debug */,
+				DC72A9272C1A2C950005CB7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DC72A9282C1A2C950005CB7A /* Build configuration list for PBXNativeTarget "Interclip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC72A9292C1A2C950005CB7A /* Debug */,
+				DC72A92A2C1A2C950005CB7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DC72A92B2C1A2C950005CB7A /* Build configuration list for PBXNativeTarget "InterclipTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC72A92C2C1A2C950005CB7A /* Debug */,
+				DC72A92D2C1A2C950005CB7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DC72A92E2C1A2C950005CB7A /* Build configuration list for PBXNativeTarget "InterclipUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC72A92F2C1A2C950005CB7A /* Debug */,
+				DC72A9302C1A2C950005CB7A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DC72A8FC2C1A2C940005CB7A /* Project object */;
+}
