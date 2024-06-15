@@ -39,6 +39,7 @@ struct HomeView: View {
     @State private var alertMessage: String = ""
     @State private var showAlert: Bool = false
     @State private var clipCode: String?
+    @State private var isLoading: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
     
@@ -73,18 +74,23 @@ struct HomeView: View {
                         isTextFieldFocused = false
                         submitURL()
                     }, label: {
-                        Spacer()
-                        Text("Create clip")
-                            .font(.system(.title3, design: .rounded))
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                        Spacer()
+                        if isLoading {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Text("Create clip")
+                                .font(.system(.title3, design: .rounded))
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                        }
                     })
                     .padding(15)
                     .frame(minWidth: 120, maxWidth: 230)
                     .background(Color.blue)
                     .clipShape(Capsule())
                     .padding()
+                    .disabled(isLoading)
                 }
                 .padding(.bottom, 50)
                 
@@ -135,6 +141,8 @@ struct HomeView: View {
             return
         }
         
+        self.isLoading = true
+        
         createClip(url: urlString) { result in
             switch result {
             case .success(let clipCode):
@@ -147,6 +155,8 @@ struct HomeView: View {
                 
                 triggerHapticFeedback(type: .error)
             }
+
+            self.isLoading = false
         }
     }
 }
@@ -156,6 +166,7 @@ struct SearchView: View {
     @State private var alertMessage: String = ""
     @State private var showAlert: Bool = false
     @State private var clipCode: String?
+    @State private var isLoading: Bool = false
     
     @Environment(\.sizeCategory) var sizeCategory // Get current size category for debugging
     
@@ -201,18 +212,23 @@ struct SearchView: View {
                     Button(action: {
                         dismissKeyboardAndSubmit()
                     }, label: {
-                        Spacer()
-                        Text("Receive clip")
-                            .font(.system(.title3, design: .rounded))
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                        Spacer()
+                        if isLoading {
+                            ProgressView() // Show loading indicator
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Text("Receive clip")
+                                .font(.system(.title3, design: .rounded))
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                        }
                     })
                     .padding(15)
                     .frame(minWidth: 120, maxWidth: 230)
                     .background(Color.blue)
                     .clipShape(Capsule())
                     .padding()
+                    .disabled(isLoading)
                 }
                 .padding(.bottom, 50)
                 
@@ -254,6 +270,8 @@ struct SearchView: View {
             return
         }
         
+        self.isLoading = true
+        
         retrieveClip(code: codeString) { result in
             switch result {
             case .success(let clipCode):
@@ -265,6 +283,8 @@ struct SearchView: View {
                 self.showAlert = true
                 triggerHapticFeedback(type: .error)
             }
+
+            self.isLoading = false
         }
     }
 }
