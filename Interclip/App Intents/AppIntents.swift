@@ -9,6 +9,7 @@
 import AppIntents
 import Foundation
 import OSLog
+import InterclipShared
 
 struct CreateClip: AppIntent {
     static let title: LocalizedStringResource = "Create a clip from a URL"
@@ -69,8 +70,6 @@ struct RetrieveClip: AppIntent {
     }
     
     static let openAppWhenRun = false
-    
-
 }
 
 func createClipAsync(url: String) async throws -> String {

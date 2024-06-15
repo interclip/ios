@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DC3777582C1DD7FF0065C302 /* ApiMethods.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC3777572C1DD7F00065C302 /* ApiMethods.swift */; };
 		DC3777602C1DDA8D0065C302 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC37775F2C1DDA8D0065C302 /* ShareViewController.swift */; };
 		DC3777632C1DDA8D0065C302 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = DC3777622C1DDA8D0065C302 /* Base */; };
 		DC3777672C1DDA8D0065C302 /* ShareTarget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DC37775D2C1DDA8D0065C302 /* ShareTarget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -21,6 +20,7 @@
 		DC37779B2C1DDC820065C302 /* ClipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC37779A2C1DDC7E0065C302 /* ClipService.swift */; };
 		DC37779C2C1DDDF00065C302 /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
 		DC37779D2C1DDDF00065C302 /* InterclipShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		DC3777A22C1DE7DC0065C302 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC3777A12C1DE7DA0065C302 /* Helpers.swift */; };
 		DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9072C1A2C940005CB7A /* InterclipApp.swift */; };
 		DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9092C1A2C940005CB7A /* ContentView.swift */; };
 		DC72A90C2C1A2C950005CB7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC72A90B2C1A2C950005CB7A /* Assets.xcassets */; };
@@ -134,7 +134,6 @@
 
 /* Begin PBXFileReference section */
 		DC37774D2C1DB4910065C302 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		DC3777572C1DD7F00065C302 /* ApiMethods.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiMethods.swift; sourceTree = "<group>"; };
 		DC37775D2C1DDA8D0065C302 /* ShareTarget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareTarget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC37775F2C1DDA8D0065C302 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		DC3777622C1DDA8D0065C302 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
@@ -145,6 +144,7 @@
 		DC37777F2C1DDC050065C302 /* InterclipSharedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InterclipSharedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC3777862C1DDC050065C302 /* InterclipSharedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipSharedTests.swift; sourceTree = "<group>"; };
 		DC37779A2C1DDC7E0065C302 /* ClipService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipService.swift; sourceTree = "<group>"; };
+		DC3777A12C1DE7DA0065C302 /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		DC72A9042C1A2C940005CB7A /* Interclip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Interclip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC72A9072C1A2C940005CB7A /* InterclipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipApp.swift; sourceTree = "<group>"; };
 		DC72A9092C1A2C940005CB7A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -235,6 +235,7 @@
 		DC3777772C1DDC050065C302 /* InterclipShared */ = {
 			isa = PBXGroup;
 			children = (
+				DC3777A12C1DE7DA0065C302 /* Helpers.swift */,
 				DC37779A2C1DDC7E0065C302 /* ClipService.swift */,
 				DC3777782C1DDC050065C302 /* InterclipShared.h */,
 				DC3777792C1DDC050065C302 /* InterclipShared.docc */,
@@ -287,7 +288,6 @@
 		DC72A9062C1A2C940005CB7A /* Interclip */ = {
 			isa = PBXGroup;
 			children = (
-				DC3777572C1DD7F00065C302 /* ApiMethods.swift */,
 				DC37774D2C1DB4910065C302 /* Info.plist */,
 				DC3777482C1DB0360065C302 /* App Intents */,
 				DC72A9072C1A2C940005CB7A /* InterclipApp.swift */,
@@ -570,6 +570,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC37777A2C1DDC050065C302 /* InterclipShared.docc in Sources */,
+				DC3777A22C1DE7DC0065C302 /* Helpers.swift in Sources */,
 				DC37779B2C1DDC820065C302 /* ClipService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -587,7 +588,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */,
-				DC3777582C1DD7FF0065C302 /* ApiMethods.swift in Sources */,
 				DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

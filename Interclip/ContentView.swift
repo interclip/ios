@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import InterclipShared
 
 struct ContentView: View {
     var body: some View {
@@ -130,9 +131,7 @@ struct HomeView: View {
             alertMessage = "Invalid URL. Please enter a valid URL."
             showAlert = true
             
-            // Medium haptic feedback for warning
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
+            triggerHapticFeedback(type: .medium)
             return
         }
         
@@ -141,17 +140,12 @@ struct HomeView: View {
             case .success(let clipCode):
                 self.clipCode = clipCode
                 
-                // Success haptic feedback
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.success)
-                
+                triggerHapticFeedback(type: .success)
             case .failure(let error):
                 self.alertMessage = "Error: \(error.localizedDescription)"
                 self.showAlert = true
                 
-                // Error haptic feedback
-                let generator = UINotificationFeedbackGenerator()
-                generator.notificationOccurred(.error)
+                triggerHapticFeedback(type: .error)
             }
         }
     }
@@ -264,40 +258,14 @@ struct SearchView: View {
             switch result {
             case .success(let clipCode):
                 self.clipCode = clipCode
-                self.triggerHapticFeedback(type: .success)
+                triggerHapticFeedback(type: .success)
                 
             case .failure(let error):
                 self.alertMessage = "Error: \(error.localizedDescription)"
                 self.showAlert = true
-                self.triggerHapticFeedback(type: .error)
+                triggerHapticFeedback(type: .error)
             }
         }
-    }
-
-    // Helper method for haptic feedback
-    private func triggerHapticFeedback(type: FeedbackType) {
-        switch type {
-        case .light:
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        case .medium:
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
-        case .success:
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-        case .error:
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
-        }
-    }
-
-    // Enum for feedback types
-    private enum FeedbackType {
-        case light
-        case medium
-        case success
-        case error
     }
 }
 
