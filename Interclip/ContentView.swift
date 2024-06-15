@@ -67,21 +67,24 @@ struct HomeView: View {
                     Button(action: {
                         isTextFieldFocused = false
                         submitURL()
-                    }, label: {
-                        if isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Create clip")
-                                .font(.system(.title3, design: .rounded))
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
+                    }) {
+                        HStack {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Create clip")
+                                    .font(.system(.title3, design: .rounded))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                            }
                         }
-                    })
-                    .padding(15)
-                    .frame(minWidth: 120, maxWidth: 230)
-                    .background(Color.blue)
+                        .frame(height: 54)
+                        .frame(maxWidth: 230)
+                    }
+                    .background(isLoading ? Color.gray : Color.blue) // Button color changes if loading
                     .clipShape(Capsule())
                     .padding()
                     .disabled(isLoading)
@@ -205,21 +208,24 @@ struct SearchView: View {
                     
                     Button(action: {
                         dismissKeyboardAndSubmit()
-                    }, label: {
-                        if isLoading {
-                            ProgressView() // Show loading indicator
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Receive clip")
-                                .font(.system(.title3, design: .rounded))
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
+                    }) {
+                        HStack {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Receive clip")
+                                    .font(.system(.title3, design: .rounded))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                            }
                         }
-                    })
-                    .padding(15)
-                    .frame(minWidth: 120, maxWidth: 230)
-                    .background(Color.blue)
+                        .frame(height: 54)
+                        .frame(maxWidth: 230)
+                    }
+                    .background(isLoading ? Color.gray : Color.blue) // Button color changes if loading
                     .clipShape(Capsule())
                     .padding()
                     .disabled(isLoading)
