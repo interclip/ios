@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DC3777582C1DD7FF0065C302 /* ApiMethods.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC3777572C1DD7F00065C302 /* ApiMethods.swift */; };
 		DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9072C1A2C940005CB7A /* InterclipApp.swift */; };
 		DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9092C1A2C940005CB7A /* ContentView.swift */; };
 		DC72A90C2C1A2C950005CB7A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC72A90B2C1A2C950005CB7A /* Assets.xcassets */; };
@@ -35,6 +36,7 @@
 
 /* Begin PBXFileReference section */
 		DC37774D2C1DB4910065C302 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		DC3777572C1DD7F00065C302 /* ApiMethods.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiMethods.swift; sourceTree = "<group>"; };
 		DC72A9042C1A2C940005CB7A /* Interclip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Interclip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC72A9072C1A2C940005CB7A /* InterclipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipApp.swift; sourceTree = "<group>"; };
 		DC72A9092C1A2C940005CB7A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 		DC72A9062C1A2C940005CB7A /* Interclip */ = {
 			isa = PBXGroup;
 			children = (
+				DC3777572C1DD7F00065C302 /* ApiMethods.swift */,
 				DC37774D2C1DB4910065C302 /* Info.plist */,
 				DC3777482C1DB0360065C302 /* App Intents */,
 				DC72A9072C1A2C940005CB7A /* InterclipApp.swift */,
@@ -276,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */,
+				DC3777582C1DD7FF0065C302 /* ApiMethods.swift in Sources */,
 				DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
