@@ -22,12 +22,6 @@ struct ContentView: View {
                     Image(systemName: "magnifyingglass")
                     Text("Receive")
                 }
-            
-//            ProfileView()
-//                .tabItem {
-//                    Image(systemName: "gearshape.fill")
-//                    Text("Settings")
-//                }
         }
     }
 }
@@ -63,7 +57,7 @@ struct HomeView: View {
                         .padding(.bottom, 20)
                         .shadow(color: Color(UIColor.label).opacity(0.15), radius: 2)
                         .autocapitalization(.none)
-                    //                    .keyboardType(.URL)
+                        .keyboardType(.URL)
                         .focused($isTextFieldFocused)
                         .disableAutocorrection(true)
                         .frame(minWidth: 120, maxWidth: 450)
@@ -165,7 +159,7 @@ struct SearchView: View {
     @State private var codeString: String = ""
     @State private var alertMessage: String = ""
     @State private var showAlert: Bool = false
-    @State private var clipCode: String?
+    @State private var urlOfCode: String?
     @State private var isLoading: Bool = false
     
     @Environment(\.sizeCategory) var sizeCategory // Get current size category for debugging
@@ -232,7 +226,7 @@ struct SearchView: View {
                 }
                 .padding(.bottom, 50)
                 
-                if let code = clipCode, !code.isEmpty {
+                if let code = urlOfCode, !code.isEmpty {
                     Link(code, destination: URL(string: code)!)
                         .font(.title2)
                         .foregroundStyle(.blue)
@@ -275,7 +269,7 @@ struct SearchView: View {
         retrieveClip(code: codeString) { result in
             switch result {
             case .success(let clipCode):
-                self.clipCode = clipCode
+                self.urlOfCode = clipCode
                 triggerHapticFeedback(type: .success)
                 
             case .failure(let error):
@@ -297,7 +291,6 @@ struct ProfileView: View {
                     .font(.largeTitle)
                     .padding()
                 
-                // Add profile details here
             }
             .navigationTitle("Profile")
         }
