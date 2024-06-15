@@ -22,13 +22,114 @@ struct ContentView: View {
                     Text("Receive")
                 }
             
-            ProfileView()
-                .tabItem {
-                    Image(systemName: "gearshape.fill")
-                    Text("Settings")
-                }
+//            ProfileView()
+//                .tabItem {
+//                    Image(systemName: "gearshape.fill")
+//                    Text("Settings")
+//                }
         }
     }
+}
+
+func createClip(url: String, completion: @escaping (Result<String, Error>) -> Void) {
+    let endpoint = "https://server.interclip.app/api/clip"
+    
+    guard let requestURL = URL(string: endpoint) else {
+        completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid endpoint URL"])))
+        return
+    }
+    
+    var request = URLRequest(url: requestURL)
+    request.httpMethod = "POST"
+    request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
+    
+    // Encode URL parameter
+    let bodyData = "url=\(url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+    request.httpBody = bodyData.data(using: .utf8)
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            completion(.failure(error ?? NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Network error"])))
+            return
+        }
+        
+        // Debugging: Log raw response data
+        if let rawResponse = String(data: data, encoding: .utf8) {
+            print("Raw response: \(rawResponse)")
+        }
+        
+        do {
+            // Ensure we handle JSON response correctly
+            let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+            guard let responseDict = jsonResponse else {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+            }
+            
+            if let status = responseDict["status"] as? String, status == "success", let result = responseDict["result"] as? String {
+                DispatchQueue.main.async {
+                    completion(.success(result))
+                }
+            } else if let message = responseDict["result"] as? String {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
+            } else {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
+            }
+        } catch {
+            DispatchQueue.main.async {
+                completion(.failure(error))
+            }
+        }
+    }.resume()
+}
+
+func retrieveClip(code: String, completion: @escaping (Result<String, Error>) -> Void) {
+    let endpoint = "https://server.interclip.app/api/clip"
+    
+    // Construct URLComponents to handle query parameters
+    var urlComponents = URLComponents(string: endpoint)
+    urlComponents?.queryItems = [URLQueryItem(name: "code", value: code)]
+    
+    guard let requestURL = urlComponents?.url else {
+        completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid endpoint URL"])))
+        return
+    }
+    
+    var request = URLRequest(url: requestURL)
+    request.httpMethod = "GET"
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        guard let data = data, error == nil else {
+            completion(.failure(error ?? NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Network error"])))
+            return
+        }
+        
+        // Debugging: Log raw response data
+        if let rawResponse = String(data: data, encoding: .utf8) {
+            print("Raw response: \(rawResponse)")
+        }
+        
+        do {
+            // Ensure we handle JSON response correctly
+            let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+            guard let responseDict = jsonResponse else {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
+            }
+            
+            if let status = responseDict["status"] as? String, status == "success", let result = responseDict["result"] as? String {
+                DispatchQueue.main.async {
+                    completion(.success(result))
+                }
+            } else if let message = responseDict["result"] as? String {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
+            } else {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
+            }
+        } catch {
+            DispatchQueue.main.async {
+                completion(.failure(error))
+            }
+        }
+    }.resume()
 }
 
 struct HomeView: View {
@@ -36,6 +137,8 @@ struct HomeView: View {
     @State private var alertMessage: String = ""
     @State private var showAlert: Bool = false
     @State private var clipCode: String?
+    
+    @FocusState private var isTextFieldFocused: Bool
     
     @Environment(\.sizeCategory) var sizeCategory // Get current size category for debugging
     
@@ -58,31 +161,38 @@ struct HomeView: View {
                         .shadow(color: Color(UIColor.label).opacity(0.15), radius: 2)
                         .autocapitalization(.none)
                     //                    .keyboardType(.URL)
+                        .focused($isTextFieldFocused)
                         .disableAutocorrection(true)
+                        .frame(minWidth: 120, maxWidth: 450)
                         .onSubmit {
                             dismissKeyboardAndSubmit()
                         }
-                    
                     Button(action: {
-                        submitURL()
-                    }) {
+                        dismissKeyboardAndSubmit()
+                    }, label: {
+                        Spacer()
                         Text("Create clip")
-                        
-                        Image(systemName: "return")
-                    }   .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .shadow(radius: 2)
+                            .font(.system(.title3, design: .rounded))
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Spacer()
+                    })
+                    .padding(15)
+                    .frame(minWidth: 120, maxWidth: 230)
+                    .background(Color.blue)
+                    .clipShape(Capsule())
+                    .padding()
                 }
                 .padding(.bottom, 50)
                 
                 Text(clipCode ?? " ")
                     .font(.title2)
                     .padding()
+                    .textSelection(.enabled)
                 
                 Spacer()
             }
+            .frame(maxWidth: .infinity)
             .padding()
             .background(Color(UIColor.systemGray6))
             .navigationBarTitle("Create a clip", displayMode: .large)
@@ -93,8 +203,8 @@ struct HomeView: View {
     }
     
     func dismissKeyboardAndSubmit() {
-        // Dismiss the keyboard
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        // Dismiss the
+        isTextFieldFocused = false
         submitURL()
     }
     
@@ -136,57 +246,6 @@ struct HomeView: View {
             }
         }
     }
-
-    func createClip(url: String, completion: @escaping (Result<String, Error>) -> Void) {
-        let endpoint = "https://server.interclip.app/api/clip"
-        
-        guard let requestURL = URL(string: endpoint) else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid endpoint URL"])))
-            return
-        }
-        
-        var request = URLRequest(url: requestURL)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
-        
-        // Encode URL parameter
-        let bodyData = "url=\(url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
-        request.httpBody = bodyData.data(using: .utf8)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data, error == nil else {
-                completion(.failure(error ?? NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Network error"])))
-                return
-            }
-            
-            // Debugging: Log raw response data
-            if let rawResponse = String(data: data, encoding: .utf8) {
-                print("Raw response: \(rawResponse)")
-            }
-            
-            do {
-                // Ensure we handle JSON response correctly
-                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                guard let responseDict = jsonResponse else {
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
-                }
-                
-                if let status = responseDict["status"] as? String, status == "success", let result = responseDict["result"] as? String {
-                    DispatchQueue.main.async {
-                        completion(.success(result))
-                    }
-                } else if let message = responseDict["result"] as? String {
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
-                } else {
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-            }
-        }.resume()
-    }
 }
 
 struct SearchView: View {
@@ -201,13 +260,13 @@ struct SearchView: View {
         NavigationStack {
             VStack {
                 Spacer()
-                
-                Text("Paste a code below to get its link")
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 12)
-                
                 VStack {
+                    Text("Paste a code below to get its link")
+                        .font(.body)
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 12)
+                    
+                    
                     TextField("Enter 5 chars", text: Binding(
                         get: {
                             self.codeString
@@ -216,7 +275,8 @@ struct SearchView: View {
                             self.codeString = String($0.prefix(5))
                         }
                     ))
-                    .frame(minWidth: 120, maxWidth: 150) // Set a fixed width for the TextField
+                    .multilineTextAlignment(.center)
+                    .frame(minWidth: 120, maxWidth: 150)
                     .padding(10)
                     .background(Color(UIColor.systemBackground))
                     .cornerRadius(10)
@@ -234,31 +294,37 @@ struct SearchView: View {
                         }
                     }
                     .textFieldStyle(PlainTextFieldStyle())
-
+                    
                     Button(action: {
-                        submitCode()
-                    }) {
-                        HStack {
-                            Text("Create clip")
-                            Image(systemName: "return")
-                        }
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .shadow(radius: 2)
-                    }
+                        dismissKeyboardAndSubmit()
+                    }, label: {
+                        Spacer()
+                        Text("Receive clip")
+                            .font(.system(.title3, design: .rounded))
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Spacer()
+                    })
+                    .padding(15)
+                    .frame(minWidth: 120, maxWidth: 230)
+                    .background(Color.blue)
+                    .clipShape(Capsule())
+                    .padding()
                 }
                 .padding(.bottom, 50)
                 
                 if let code = clipCode, !code.isEmpty {
-                    Text(code)
+                    Link(code, destination: URL(string: code)!)
                         .font(.title2)
+                        .foregroundStyle(.blue)
                         .padding()
+                        .frame(maxWidth: .infinity)
+                        .textSelection(.enabled)
                 } else {
                     Text(" ")
                         .font(.title2)
                         .padding()
+                        .frame(maxWidth: .infinity)
                 }
                 
                 Spacer()
@@ -271,7 +337,7 @@ struct SearchView: View {
             }
         }
     }
-    
+
     func dismissKeyboardAndSubmit() {
         // Dismiss the keyboard
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -324,57 +390,6 @@ struct SearchView: View {
         case success
         case error
     }
-
-
-    func retrieveClip(code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        let endpoint = "https://server.interclip.app/api/clip"
-        
-        // Construct URLComponents to handle query parameters
-        var urlComponents = URLComponents(string: endpoint)
-        urlComponents?.queryItems = [URLQueryItem(name: "code", value: code)]
-        
-        guard let requestURL = urlComponents?.url else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid endpoint URL"])))
-            return
-        }
-        
-        var request = URLRequest(url: requestURL)
-        request.httpMethod = "GET"
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data, error == nil else {
-                completion(.failure(error ?? NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Network error"])))
-                return
-            }
-            
-            // Debugging: Log raw response data
-            if let rawResponse = String(data: data, encoding: .utf8) {
-                print("Raw response: \(rawResponse)")
-            }
-            
-            do {
-                // Ensure we handle JSON response correctly
-                let jsonResponse = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                guard let responseDict = jsonResponse else {
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON format"])
-                }
-                
-                if let status = responseDict["status"] as? String, status == "success", let result = responseDict["result"] as? String {
-                    DispatchQueue.main.async {
-                        completion(.success(result))
-                    }
-                } else if let message = responseDict["result"] as? String {
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
-                } else {
-                    throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown error"])
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
-            }
-        }.resume()
-    }
 }
 
 struct ProfileView: View {
@@ -400,7 +415,7 @@ struct DetailsView: View {
     }
 }
 
-
 #Preview {
     ContentView()
 }
+
