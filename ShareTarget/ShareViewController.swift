@@ -164,29 +164,11 @@ class ShareViewController: UIViewController {
     }
 
     private func generateQRCodeAndDisplay(for urlString: String) {
-        if let qrImage = generateQRCode(from: urlString, scale: 10.0) { // Adjust the scale to the desired resolution
-            DispatchQueue.main.async {
-                self.qrCodeImageView.image = qrImage
-            }
-        } else {
-            showError(message: "Failed to generate QR code")
-        }
-    }
+        let qrGenerator = QrCodeImage()
 
-    let context = CIContext()
-    let filter = CIFilter.qrCodeGenerator()
-
-    func generateQRCode(from string: String, scale: CGFloat) -> UIImage? {
-        filter.message = Data(string.utf8)
-        
-        if let outputImage = filter.outputImage {
-            let transform = CGAffineTransform(scaleX: scale, y: scale)
-            let scaledImage = outputImage.transformed(by: transform)
-            
-            if let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) {
-                return UIImage(cgImage: cgImage)
-            }
+        let qrImage = qrGenerator.generateQRCode(from: urlString)
+        DispatchQueue.main.async {
+            self.qrCodeImageView.image = qrImage
         }
-        return nil
     }
 }

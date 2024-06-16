@@ -26,6 +26,15 @@ struct ContentView: View {
     }
 }
 
+struct HandleView: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2.5)
+            .fill(Color.gray.opacity(0.5))
+            .frame(width: 40, height: 5)
+            .padding(.top, 10)
+            .padding(.bottom, 10)
+    }
+}
 
 struct HomeView: View {
     @State private var urlString: String = ""
@@ -34,11 +43,12 @@ struct HomeView: View {
     @State private var showAlert: Bool = false
     @State private var clipCode: String?
     @State private var isLoading: Bool = false
+    @State private var shouldShowQrCodeSheet: Bool = false
+    @State private var qrCode: UIImage = UIImage(systemName: "xmark.circle")!
+    @Environment(\.colorScheme) var colorScheme
     
     @FocusState private var isTextFieldFocused: Bool
-    
-    @Environment(\.sizeCategory) var sizeCategory // Get current size category for debugging
-    
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -91,10 +101,21 @@ struct HomeView: View {
                 }
                 .padding(.bottom, 50)
                 
-                Text(clipCode ?? " ")
+                Text(clipCode ?? "")
                     .font(.title2)
                     .padding()
-                    .textSelection(.enabled)
+                    .contextMenu {
+                        Button(action: {
+                            UIPasteboard.general.string = clipCode
+                        }) {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                        Button(action: {
+                            shouldShowQrCodeSheet = true
+                        }) {
+                            Label("Show QR code", systemImage: "qrcode")
+                        }
+                    }
                 
                 Spacer()
             }
@@ -105,7 +126,45 @@ struct HomeView: View {
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("URL Submission"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
+
+            .sheet(isPresented: $shouldShowQrCodeSheet) {
+                if let clipCode = clipCode {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                shouldShowQrCodeSheet = false
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.gray)
+                                    .padding()
+                            }
+                        }
+                        
+                        Spacer()
+                        Image(uiImage: qrCode)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 300, height: 300)
+                            .onAppear(perform: generateQRCode)
+                            .onChange(of: colorScheme) {
+                                generateQRCode()
+                            }                
+                        Text(clipCode).font(.system(.title)).padding()
+                        Spacer()
+                    }
+                    .background(Color(.systemBackground))
+                } else if clipCode == nil {
+                    Text("No clipCode present")
+                }
+            }
         }
+    }
+    
+    func generateQRCode() {
+        let qrGenerator = QrCodeImage()
+        qrCode = qrGenerator.generateQRCode(from: "https://interclip.app/\(clipCode ?? "")")
     }
     
     func dismissKeyboardAndSubmit() {
@@ -164,9 +223,7 @@ struct SearchView: View {
     @State private var showAlert: Bool = false
     @State private var urlOfCode: String?
     @State private var isLoading: Bool = false
-    
-    @Environment(\.sizeCategory) var sizeCategory // Get current size category for debugging
-    
+
     var body: some View {
         NavigationStack {
             VStack {
