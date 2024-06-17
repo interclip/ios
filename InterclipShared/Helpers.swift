@@ -43,7 +43,7 @@ public struct QrCodeImage {
         let data    = Data(text.utf8)
         let filter  = CIFilter.qrCodeGenerator()
 
-        // ref : https://stackoverflow.com/questions/57704885/how-can-i-check-ios-devices-current-userinterfacestyle-programmatically
+        // ref: https://stackoverflow.com/questions/57704885/how-can-i-check-ios-devices-current-userinterfacestyle-programmatically
         var osTheme: UIUserInterfaceStyle { return UIScreen.main.traitCollection.userInterfaceStyle }
         filter.setValue(data, forKey: "inputMessage")
 

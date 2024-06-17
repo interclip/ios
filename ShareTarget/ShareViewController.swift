@@ -10,21 +10,38 @@ import Social
 import InterclipShared
 import CoreImage.CIFilterBuiltins
 
-extension UIImage {
-    // Helper function to create a high-resolution image from a CIImage
-    func createNonInterpolatedUIImage(from ciImage: CIImage, with scale: CGFloat) -> UIImage? {
-        let size = CGSize(width: ciImage.extent.size.width * scale, height: ciImage.extent.size.height * scale)
-        UIGraphicsBeginImageContext(size)
-        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+extension UIColor {
+    static var userBackground: UIColor {
+        return UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor.black
+            default:
+                return UIColor.white
+            }
+        }
+    }
 
-        let cgImage = CIContext().createCGImage(ciImage, from: ciImage.extent)
-        context.interpolationQuality = .none
-        context.draw(cgImage!, in: CGRect(origin: .zero, size: size))
+    static var userText: UIColor {
+        return UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor.white
+            default:
+                return UIColor.black
+            }
+        }
+    }
 
-        let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        return scaledImage
+    static var userAccent: UIColor {
+        return UIColor { traitCollection in
+            switch traitCollection.userInterfaceStyle {
+            case .dark:
+                return UIColor.systemBlue
+            default:
+                return UIColor.systemBlue
+            }
+        }
     }
 }
 
@@ -42,10 +59,9 @@ class ShareViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .white
+        view.backgroundColor = .userBackground
         setupUI()
 
-        // As soon as the share sheet is presented, try to fetch the URL and create a clip
         if let item = self.extensionContext?.inputItems.first as? NSExtensionItem,
            let attachment = item.attachments?.first {
             if attachment.hasItemConformingToTypeIdentifier("public.url") {
@@ -67,9 +83,7 @@ class ShareViewController: UIViewController {
         }
     }
 
-    // Setup UI components
     private func setupUI() {
-        // Create a stack view for vertical layout
         let stackView = UIStackView(arrangedSubviews: [urlLabel, qrCodeImageView, clipCodeLabel, copyButton])
         stackView.axis = .vertical
         stackView.alignment = .center
@@ -77,44 +91,39 @@ class ShareViewController: UIViewController {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stackView)
 
-        // URL Label
         urlLabel.textAlignment = .center
-        urlLabel.textColor = .black
+        urlLabel.textColor = .userText
         urlLabel.numberOfLines = 2
 
-        // QR Code Image View
         qrCodeImageView.contentMode = .scaleAspectFit
         qrCodeImageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
         qrCodeImageView.heightAnchor.constraint(equalTo: qrCodeImageView.widthAnchor).isActive = true
 
-        // Clip Code Label
         clipCodeLabel.textAlignment = .center
         clipCodeLabel.font = UIFont.boldSystemFont(ofSize: 24)
-        clipCodeLabel.textColor = .black
+        clipCodeLabel.textColor = .userText
         clipCodeLabel.numberOfLines = 1
 
-        // Copy Button
         copyButton.setTitle("Copy Code", for: .normal)
+        copyButton.tintColor = .userAccent
         copyButton.addTarget(self, action: #selector(copyCode), for: .touchUpInside)
         copyButton.isHidden = true
-        
-        // Activity Indicator
+
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(activityIndicator)
         activityIndicator.startAnimating()
+        activityIndicator.color = .userAccent
 
-        // Layout constraints for centering the stack view
         NSLayoutConstraint.activate([
             stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
+
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
-    
-    // Function to create the clip and handle completion
+
     private func createClipAndComplete() {
         guard let url = self.url else {
             showError(message: "URL is missing")
@@ -122,7 +131,7 @@ class ShareViewController: UIViewController {
         }
 
         createClip(url: url) { [weak self] result in
-            guard let self = self else { return } // Ensure self is not nil
+            guard let self = self else { return }
 
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
@@ -130,7 +139,6 @@ class ShareViewController: UIViewController {
 
             switch result {
             case .success(let clipCode):
-                // Update the UI with the clip code
                 DispatchQueue.main.async {
                     self.clipCode = clipCode
                     self.clipCodeLabel.text = clipCode
@@ -138,13 +146,11 @@ class ShareViewController: UIViewController {
                 }
 
             case .failure(let error):
-                // Notify user of the error
                 self.showError(message: error.localizedDescription)
             }
         }
     }
 
-    // Action for copying the code to the clipboard
     @objc private func copyCode() {
         guard let clipCode = clipCode else { return }
         UIPasteboard.general.string = clipCode
@@ -152,7 +158,6 @@ class ShareViewController: UIViewController {
         triggerHapticFeedback(type: .success)
     }
 
-    // Helper function to show error messages
     private func showError(message: String) {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)

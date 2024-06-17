@@ -11,13 +11,13 @@ import InterclipShared
 struct ContentView: View {
     var body: some View {
         TabView {
-            HomeView()
+            CreateClipView()
                 .tabItem {
                     Image(systemName: "paperplane.fill")
                     Text("Send")
                 }
 
-            SearchView()
+            ReceiveLinkView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
                     Text("Receive")
@@ -36,7 +36,7 @@ struct HandleView: View {
     }
 }
 
-struct HomeView: View {
+struct CreateClipView: View {
     @State private var urlString: String = ""
     @State private var urlStringRequested: String = ""
     @State private var alertMessage: String = ""
@@ -118,7 +118,10 @@ struct HomeView: View {
                         Button(action: {
                             let url = URL(string: "https://interclip.app/\(clipCode ?? "")")!
                             let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-                            UIApplication.shared.windows.first?.rootViewController?.present(activityViewController, animated: true, completion: nil)
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                                keyWindow.rootViewController?.present(activityViewController, animated: true, completion: nil)
+                            }
                         }) {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
@@ -224,7 +227,7 @@ struct HomeView: View {
     }
 }
 
-struct SearchView: View {
+struct ReceiveLinkView: View {
     @State private var codeString: String = ""
     @State private var alertMessage: String = ""
     @State private var showAlert: Bool = false
