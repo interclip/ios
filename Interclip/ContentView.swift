@@ -16,7 +16,7 @@ struct ContentView: View {
                     Image(systemName: "paperplane.fill")
                     Text("Send")
                 }
-            
+
             SearchView()
                 .tabItem {
                     Image(systemName: "magnifyingglass")
@@ -46,19 +46,19 @@ struct HomeView: View {
     @State private var shouldShowQrCodeSheet: Bool = false
     @State private var qrCode: UIImage = UIImage(systemName: "xmark.circle")!
     @Environment(\.colorScheme) var colorScheme
-    
+
     @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
             VStack {
                 Spacer()
-                
+
                 Text("Paste a URL below to get a code")
                     .font(.body)
                     .foregroundColor(.gray)
                     .padding(.bottom, 12)
-                
+
                 VStack {
                     TextField("https://...", text: $urlString)
                         .padding()
@@ -100,7 +100,7 @@ struct HomeView: View {
                     .disabled(isLoading)
                 }
                 .padding(.bottom, 50)
-                
+
                 Text(clipCode ?? "")
                     .font(.title2)
                     .padding()
@@ -116,7 +116,7 @@ struct HomeView: View {
                             Label("Show QR code", systemImage: "qrcode")
                         }
                     }
-                
+
                 Spacer()
             }
             .frame(maxWidth: .infinity)
@@ -141,7 +141,7 @@ struct HomeView: View {
                                     .padding()
                             }
                         }
-                        
+
                         Spacer()
                         Image(uiImage: qrCode)
                             .resizable()
@@ -150,7 +150,7 @@ struct HomeView: View {
                             .onAppear(perform: generateQRCode)
                             .onChange(of: colorScheme) {
                                 generateQRCode()
-                            }                
+                            }
                         Text(clipCode).font(.system(.title)).padding()
                         Spacer()
                     }
@@ -161,12 +161,12 @@ struct HomeView: View {
             }
         }
     }
-    
+
     func generateQRCode() {
         let qrGenerator = QrCodeImage()
         qrCode = qrGenerator.generateQRCode(from: "https://interclip.app/\(clipCode ?? "")")
     }
-    
+
     func dismissKeyboardAndSubmit() {
         // Dismiss the keyboard
         isTextFieldFocused = false
@@ -177,7 +177,7 @@ struct HomeView: View {
 
         submitURL()
     }
-    
+
     // Function to handle URL submission
     func submitURL() {
         if urlString.isEmpty {
@@ -188,27 +188,27 @@ struct HomeView: View {
         }
 
         urlStringRequested = urlString
-        
+
         guard let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) else {
             alertMessage = "Invalid URL. Please enter a valid URL."
             showAlert = true
-            
+
             triggerHapticFeedback(type: .medium)
             return
         }
-        
+
         self.isLoading = true
-        
+
         createClip(url: urlString) { result in
             switch result {
             case .success(let clipCode):
                 self.clipCode = clipCode
-                
+
                 triggerHapticFeedback(type: .success)
             case .failure(let error):
                 self.alertMessage = "Error: \(error.localizedDescription)"
                 self.showAlert = true
-                
+
                 triggerHapticFeedback(type: .error)
             }
 
@@ -233,8 +233,8 @@ struct SearchView: View {
                         .font(.body)
                         .foregroundColor(.gray)
                         .padding(.bottom, 12)
-                    
-                    
+
+
                     TextField("Enter 5 chars", text: Binding(
                         get: {
                             self.codeString
@@ -262,7 +262,7 @@ struct SearchView: View {
                         }
                     }
                     .textFieldStyle(PlainTextFieldStyle())
-                    
+
                     Button(action: {
                         dismissKeyboardAndSubmit()
                     }) {
@@ -288,7 +288,7 @@ struct SearchView: View {
                     .disabled(isLoading)
                 }
                 .padding(.bottom, 50)
-                
+
                 if let code = urlOfCode, !code.isEmpty {
                     Link(code, destination: URL(string: code)!)
                         .font(.title2)
@@ -298,11 +298,10 @@ struct SearchView: View {
                         .textSelection(.enabled)
                 } else {
                     Text(" ")
-                        .font(.title2)
                         .padding()
                         .frame(maxWidth: .infinity)
                 }
-                
+
                 Spacer()
             }
             .padding()
@@ -319,22 +318,22 @@ struct SearchView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         submitCode()
     }
-    
+
     // Function to handle URL submission
     func submitCode() {
         guard !codeString.isEmpty else {
             triggerHapticFeedback(type: .light)
             return
         }
-        
+
         self.isLoading = true
-        
+
         retrieveClip(code: codeString) { result in
             switch result {
             case .success(let clipCode):
                 self.urlOfCode = clipCode
                 triggerHapticFeedback(type: .success)
-                
+
             case .failure(let error):
                 self.alertMessage = "Error: \(error.localizedDescription)"
                 self.showAlert = true
@@ -346,29 +345,6 @@ struct SearchView: View {
     }
 }
 
-struct ProfileView: View {
-    var body: some View {
-        NavigationView {
-            VStack {
-                Text("This is your profile")
-                    .font(.largeTitle)
-                    .padding()
-                
-            }
-            .navigationTitle("Profile")
-        }
-    }
-}
-
-struct DetailsView: View {
-    var body: some View {
-        Text("This is the details page")
-            .font(.title)
-            .padding()
-    }
-}
-
 #Preview {
     ContentView()
 }
-
