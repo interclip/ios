@@ -115,6 +115,13 @@ struct HomeView: View {
                         }) {
                             Label("Show QR code", systemImage: "qrcode")
                         }
+                        Button(action: {
+                            let url = URL(string: "https://interclip.app/\(clipCode ?? "")")!
+                            let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                            UIApplication.shared.windows.first?.rootViewController?.present(activityViewController, animated: true, completion: nil)
+                        }) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
                     }
 
                 Spacer()
@@ -289,13 +296,25 @@ struct SearchView: View {
                 }
                 .padding(.bottom, 50)
 
-                if let code = urlOfCode, !code.isEmpty {
-                    Link(code, destination: URL(string: code)!)
+                if let url = urlOfCode, !url.isEmpty {
+                    Link(url, destination: URL(string: url)!)
                         .font(.title2)
                         .foregroundStyle(.blue)
                         .padding()
                         .frame(maxWidth: .infinity)
                         .textSelection(.enabled)
+                        .contextMenu(menuItems: {
+                            Button {
+                                UIPasteboard.general.string = url
+                            } label: {
+                                Label("Copy link", systemImage: "doc.on.doc")
+                            }
+                            Button {
+                                UIApplication.shared.open(URL(string: url)!)
+                            } label: {
+                                Label("Open link", systemImage: "safari")
+                            }
+                        })
                 } else {
                     Text(" ")
                         .padding()
