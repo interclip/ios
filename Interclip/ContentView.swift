@@ -102,8 +102,8 @@ struct CreateClipView: View {
                 .padding(.bottom, 50)
 
                 Text(clipCode ?? "")
-                    .font(.title2)
                     .padding()
+                    .font(.system(.title, design: .monospaced, weight: .regular))
                     .contextMenu {
                         Button(action: {
                             UIPasteboard.general.string = clipCode
@@ -161,7 +161,7 @@ struct CreateClipView: View {
                             .onChange(of: colorScheme) {
                                 generateQRCode()
                             }
-                        Text(clipCode).font(.system(.title)).padding()
+                        Text(clipCode).font(.system(.title, design: .monospaced, weight: .regular)).padding()
                         Spacer()
                     }
                     .background(Color(.systemBackground))
