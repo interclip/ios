@@ -112,7 +112,7 @@ struct CreateClipView: View {
             }
             .padding()
             .navigationTitle("Create a clip")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .alert("URL Submission", isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -216,21 +216,11 @@ struct ReceiveLinkView: View {
             VStack(spacing: 16) {
                 Spacer()
 
-                TextField("Enter 5 chars", text: Binding(
-                    get: { codeString },
-                    set: { codeString = String($0.prefix(5)) }
-                ))
-                .textFieldStyle(.roundedBorder)
-                .multilineTextAlignment(.center)
-                .textInputAutocapitalization(.never)
-                .keyboardType(.asciiCapable)
-                .disableAutocorrection(true)
-                .focused($isCodeFieldFocused)
-                .onSubmit { dismissKeyboardAndSubmit() }
-                .submitLabel(.go)
-                .onChange(of: codeString) {
-                    if codeString.count == 5 { dismissKeyboardAndSubmit() }
-                }
+                OTPInputView(
+                    code: $codeString,
+                    focused: $isCodeFieldFocused,
+                    onComplete: dismissKeyboardAndSubmit
+                )
 
                 Button {
                     dismissKeyboardAndSubmit()
@@ -281,7 +271,7 @@ struct ReceiveLinkView: View {
             }
             .padding()
             .navigationTitle("Receive a clip")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .alert("Link retrieval", isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -296,10 +286,7 @@ struct ReceiveLinkView: View {
     }
 
     func submitCode() {
-        guard !codeString.isEmpty else {
-            triggerHapticFeedback(type: .light)
-            return
-        }
+        guard !codeString.isEmpty, !isLoading else { return }
 
         isLoading = true
 
@@ -315,6 +302,98 @@ struct ReceiveLinkView: View {
             }
             self.isLoading = false
         }
+    }
+}
+
+// MARK: - OTP Input
+
+private struct OTPInputView: View {
+    @Binding var code: String
+    var focused: FocusState<Bool>.Binding
+    var onComplete: (() -> Void)? = nil
+
+    private let length = 5
+
+    var body: some View {
+        ZStack {
+            // Invisible text field — owns the keyboard and receives all input/paste
+            TextField("", text: $code)
+                .focused(focused)
+                .keyboardType(.asciiCapable)
+                .textInputAutocapitalization(.never)
+                .disableAutocorrection(true)
+                .textContentType(.oneTimeCode)
+                .opacity(0)
+                .onChange(of: code) {
+                    let filtered = String(
+                        code.filter { $0.isLetter || $0.isNumber }.prefix(length)
+                    )
+                    if code != filtered {
+                        code = filtered
+                        return // onChange fires again with the clean value
+                    }
+                    if code.count == length { onComplete?() }
+                }
+
+            HStack(spacing: 10) {
+                ForEach(0..<length, id: \.self) { index in
+                    let char: String? = index < code.count
+                        ? String(code[code.index(code.startIndex, offsetBy: index)])
+                        : nil
+                    CharacterBox(
+                        char: char,
+                        isActive: focused.wrappedValue && code.count == index
+                    )
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { focused.wrappedValue = true }
+        }
+    }
+}
+
+private struct CharacterBox: View {
+    let char: String?
+    let isActive: Bool
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(UIColor.systemFill))
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(
+                    isActive ? Color.accentColor : Color(UIColor.systemGray4),
+                    lineWidth: isActive ? 2 : 1
+                )
+                .animation(.easeInOut(duration: 0.15), value: isActive)
+
+            if let char {
+                Text(char)
+                    .font(.system(.title2, design: .monospaced, weight: .semibold))
+                    .transition(.scale(scale: 0.7).combined(with: .opacity))
+            } else if isActive {
+                BlinkingCursor()
+                    .transition(.opacity)
+            }
+        }
+        .frame(width: 52, height: 60)
+        .animation(.spring(duration: 0.2), value: char == nil)
+    }
+}
+
+private struct BlinkingCursor: View {
+    @State private var visible = true
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 1)
+            .fill(Color.accentColor)
+            .frame(width: 2, height: 26)
+            .opacity(visible ? 1 : 0)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                    visible = false
+                }
+            }
     }
 }
 
