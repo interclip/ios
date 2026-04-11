@@ -8,19 +8,16 @@
 import Foundation
 
 public func createClip(url: String, completion: @escaping (Result<String, Error>) -> Void) {
-    let endpoint = "https://interclip.app/api/set"
+    var urlComponents = URLComponents(string: "https://interclip.app/api/set")
+    urlComponents?.queryItems = [URLQueryItem(name: "url", value: url)]
 
-    guard let requestURL = URL(string: endpoint) else {
+    guard let requestURL = urlComponents?.url else {
         completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid endpoint URL"])))
         return
     }
 
     var request = URLRequest(url: requestURL)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-    let bodyData = try? JSONSerialization.data(withJSONObject: ["url": url])
-    request.httpBody = bodyData
+    request.httpMethod = "GET"
     
     URLSession.shared.dataTask(with: request) { data, response, error in
         guard let data = data, error == nil else {

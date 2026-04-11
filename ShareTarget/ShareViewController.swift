@@ -65,11 +65,12 @@ class ShareViewController: UIViewController {
         if let item = self.extensionContext?.inputItems.first as? NSExtensionItem,
            let attachment = item.attachments?.first {
             if attachment.hasItemConformingToTypeIdentifier("public.url") {
+                let isDark = traitCollection.userInterfaceStyle == .dark
                 attachment.loadItem(forTypeIdentifier: "public.url", options: nil) { [weak self] (data, error) in
                     if let url = data as? URL {
                         self?.url = url.absoluteString
-                        self?.urlLabel.text = url.absoluteString
-                        self?.generateQRCodeAndDisplay(for: url.absoluteString)
+                        DispatchQueue.main.async { self?.urlLabel.text = url.absoluteString }
+                        self?.generateQRCodeAndDisplay(for: url.absoluteString, isDark: isDark)
                         self?.createClipAndComplete()
                     } else {
                         self?.showError(message: "Failed to retrieve URL")
@@ -168,10 +169,8 @@ class ShareViewController: UIViewController {
         }
     }
 
-    private func generateQRCodeAndDisplay(for urlString: String) {
-        let qrGenerator = QrCodeImage()
-
-        let qrImage = qrGenerator.generateQRCode(from: urlString)
+    private func generateQRCodeAndDisplay(for urlString: String, isDark: Bool) {
+        let qrImage = QrCodeImage.shared.generateQRCode(from: urlString, isDark: isDark)
         DispatchQueue.main.async {
             self.qrCodeImageView.image = qrImage
         }

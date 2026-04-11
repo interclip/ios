@@ -173,8 +173,12 @@ struct CreateClipView: View {
     }
 
     func generateQRCode() {
-        let qrGenerator = QrCodeImage()
-        qrCode = qrGenerator.generateQRCode(from: "https://interclip.app/\(clipCode ?? "")")
+        let isDark = colorScheme == .dark
+        let code = clipCode ?? ""
+        Task.detached(priority: .userInitiated) {
+            let image = QrCodeImage.shared.generateQRCode(from: "https://interclip.app/\(code)", isDark: isDark)
+            await MainActor.run { qrCode = image }
+        }
     }
 
     func dismissKeyboardAndSubmit() {
