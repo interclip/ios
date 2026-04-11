@@ -123,6 +123,8 @@ struct CreateClipView: View {
                 Spacer()
             }
             .padding()
+            .contentShape(Rectangle())
+            .onTapGesture { isTextFieldFocused = false }
             .navigationTitle("Create a clip")
             .navigationBarTitleDisplayMode(.inline)
             .alert("URL Submission", isPresented: $showAlert) {
@@ -294,6 +296,10 @@ struct ReceiveLinkView: View {
                 Spacer()
             }
             .padding()
+            .contentShape(Rectangle())
+            .onTapGesture {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            }
             .navigationTitle("Receive a clip")
             .navigationBarTitleDisplayMode(.inline)
             .alert("Link retrieval", isPresented: $showAlert) {
