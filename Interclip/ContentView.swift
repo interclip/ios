@@ -22,6 +22,12 @@ struct ContentView: View {
                     Image(systemName: "magnifyingglass")
                     Text("Receive")
                 }
+
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gearshape")
+                    Text("Settings")
+                }
         }
         .tint(.blue)
     }
@@ -38,6 +44,7 @@ struct CreateClipView: View {
     @State private var isLoading: Bool = false
     @State private var shouldShowQrCodeSheet: Bool = false
     @FocusState private var isTextFieldFocused: Bool
+    @AppStorage("autoShowQRCode") private var autoShowQRCode = false
 
     var body: some View {
         NavigationStack {
@@ -52,6 +59,11 @@ struct CreateClipView: View {
                     .focused($isTextFieldFocused)
                     .onSubmit { dismissKeyboardAndSubmit() }
                     .submitLabel(.go)
+                    .onChange(of: urlString) { oldValue, newValue in
+                        if newValue.count - oldValue.count > 1 {
+                            dismissKeyboardAndSubmit()
+                        }
+                    }
 
                 Button {
                     isTextFieldFocused = false
@@ -151,17 +163,20 @@ struct CreateClipView: View {
 
         isLoading = true
 
-        createClip(url: urlString) { result in
-            switch result {
-            case .success(let code):
-                withAnimation(.spring()) { self.clipCode = code }
-                triggerHapticFeedback(type: .success)
-            case .failure(let error):
-                self.alertMessage = "Error: \(error.localizedDescription)"
-                self.showAlert = true
-                triggerHapticFeedback(type: .error)
+        Task.detached(priority: .userInitiated) {
+            createClip(url: urlString) { result in
+                switch result {
+                case .success(let code):
+                    withAnimation(.spring()) { self.clipCode = code }
+                    if self.autoShowQRCode { self.shouldShowQrCodeSheet = true }
+                    triggerHapticFeedback(type: .success)
+                case .failure(let error):
+                    self.alertMessage = "Error: \(error.localizedDescription)"
+                    self.showAlert = true
+                    triggerHapticFeedback(type: .error)
+                }
+                self.isLoading = false
             }
-            self.isLoading = false
         }
     }
 }
@@ -170,17 +185,23 @@ struct CreateClipView: View {
 
 private struct QRCodeSheet: View {
     let clipCode: String
-    @State private var qrCode: UIImage = UIImage(systemName: "xmark.circle")!
+    @State private var qrCode: UIImage? = nil
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            Image(uiImage: qrCode)
-                .resizable()
-                .interpolation(.none)
-                .scaledToFit()
-                .frame(maxWidth: 280)
+            if let qrCode {
+                Image(uiImage: qrCode)
+                    .resizable()
+                    .interpolation(.none)
+                    .scaledToFit()
+                    .frame(maxWidth: 280)
+            } else {
+                ProgressView()
+                    .controlSize(.large)
+                    .frame(width: 280, height: 280)
+            }
             Text(clipCode)
                 .font(.system(.title, design: .monospaced, weight: .semibold))
             Spacer()
@@ -209,7 +230,7 @@ struct ReceiveLinkView: View {
     @State private var showAlert: Bool = false
     @State private var urlOfCode: String?
     @State private var isLoading: Bool = false
-    @FocusState private var isCodeFieldFocused: Bool
+    @AppStorage("autoOpenLinks") private var autoOpenLinks = false
 
     var body: some View {
         NavigationStack {
@@ -218,7 +239,6 @@ struct ReceiveLinkView: View {
 
                 OTPInputView(
                     code: $codeString,
-                    focused: $isCodeFieldFocused,
                     onComplete: dismissKeyboardAndSubmit
                 )
 
@@ -232,7 +252,7 @@ struct ReceiveLinkView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(isLoading || codeString.isEmpty)
+                .disabled(isLoading || codeString.count != 5)
                 .overlay {
                     if isLoading { ProgressView().tint(.white) }
                 }
@@ -244,12 +264,16 @@ struct ReceiveLinkView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Link(url, destination: URL(string: url)!)
+                            Text(url)
                                 .font(.body)
                                 .foregroundStyle(.blue)
                                 .lineLimit(3)
+                                .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .textSelection(.enabled)
+                                .onTapGesture {
+                                    UIApplication.shared.open(URL(string: url)!)
+                                }
                         }
                     }
                     .contextMenu {
@@ -281,26 +305,58 @@ struct ReceiveLinkView: View {
     }
 
     func dismissKeyboardAndSubmit() {
-        isCodeFieldFocused = false
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         submitCode()
     }
 
     func submitCode() {
-        guard !codeString.isEmpty, !isLoading else { return }
+        guard codeString.count == 5, !isLoading else { return }
 
         isLoading = true
 
-        retrieveClip(code: codeString) { result in
-            switch result {
-            case .success(let url):
-                withAnimation(.spring()) { self.urlOfCode = url }
-                triggerHapticFeedback(type: .success)
-            case .failure(let error):
-                self.alertMessage = "Error: \(error.localizedDescription)"
-                self.showAlert = true
-                triggerHapticFeedback(type: .error)
+        Task.detached(priority: .userInitiated) {
+            retrieveClip(code: codeString) { result in
+                switch result {
+                case .success(let url):
+                    withAnimation(.spring()) { self.urlOfCode = url }
+                    if self.autoOpenLinks, let openURL = URL(string: url) {
+                        UIApplication.shared.open(openURL)
+                    }
+                    triggerHapticFeedback(type: .success)
+                case .failure(let error):
+                    self.alertMessage = "Error: \(error.localizedDescription)"
+                    self.showAlert = true
+                    triggerHapticFeedback(type: .error)
+                }
+                self.isLoading = false
             }
-            self.isLoading = false
+        }
+    }
+}
+
+// MARK: - Settings
+
+struct SettingsView: View {
+    @AppStorage("autoOpenLinks") private var autoOpenLinks = false
+    @AppStorage("autoShowQRCode") private var autoShowQRCode = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Toggle("Open links automatically", isOn: $autoOpenLinks)
+                } footer: {
+                    Text("Automatically open the destination URL in Safari after a code is entered.")
+                }
+
+                Section {
+                    Toggle("Show QR code after creating clip", isOn: $autoShowQRCode)
+                } footer: {
+                    Text("Show the QR code sheet as soon as a clip is created.")
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -309,45 +365,101 @@ struct ReceiveLinkView: View {
 
 private struct OTPInputView: View {
     @Binding var code: String
-    var focused: FocusState<Bool>.Binding
     var onComplete: (() -> Void)? = nil
+    @State private var isEditing = false
 
     private let length = 5
 
     var body: some View {
-        ZStack {
-            // Invisible text field — owns the keyboard and receives all input/paste
-            TextField("", text: $code)
-                .focused(focused)
-                .keyboardType(.asciiCapable)
-                .textInputAutocapitalization(.never)
-                .disableAutocorrection(true)
-                .textContentType(.oneTimeCode)
-                .opacity(0)
-                .onChange(of: code) {
-                    let filtered = String(
-                        code.filter { $0.isLetter || $0.isNumber }.prefix(length)
-                    )
-                    if code != filtered {
-                        code = filtered
-                        return // onChange fires again with the clean value
-                    }
-                    if code.count == length { onComplete?() }
-                }
-
-            HStack(spacing: 10) {
-                ForEach(0..<length, id: \.self) { index in
-                    let char: String? = index < code.count
-                        ? String(code[code.index(code.startIndex, offsetBy: index)])
-                        : nil
-                    CharacterBox(
-                        char: char,
-                        isActive: focused.wrappedValue && code.count == index
-                    )
-                }
+        HStack(spacing: 10) {
+            ForEach(0..<length, id: \.self) { index in
+                let char: String? = index < code.count
+                    ? String(code[code.index(code.startIndex, offsetBy: index)])
+                    : nil
+                CharacterBox(
+                    char: char,
+                    isActive: isEditing && code.count == index
+                )
             }
-            .contentShape(Rectangle())
-            .onTapGesture { focused.wrappedValue = true }
+        }
+        .overlay {
+            // UIViewRepresentable gives us a real UITextField so UIKit handles
+            // all native gestures: tap to focus, tap-on-cursor for paste menu,
+            // long-press select. tintColor = .clear hides the cursor visually
+            // but iOS still shows the paste popup (it's gesture-driven, not
+            // cursor-driven).
+            InvisibleTextField(
+                text: $code,
+                isEditing: $isEditing,
+                length: length,
+                onComplete: { onComplete?() }
+            )
+        }
+    }
+}
+
+private struct InvisibleTextField: UIViewRepresentable {
+    @Binding var text: String
+    @Binding var isEditing: Bool
+    let length: Int
+    var onComplete: () -> Void
+
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.keyboardType = .asciiCapable
+        field.autocapitalizationType = .none
+        field.autocorrectionType = .no
+        field.textContentType = .oneTimeCode
+        field.tintColor = .clear
+        field.textColor = .clear
+        field.backgroundColor = .clear
+        field.borderStyle = .none
+        field.delegate = context.coordinator
+        return field
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text, isEditing: $isEditing, length: length, onComplete: onComplete)
+    }
+
+    class Coordinator: NSObject, UITextFieldDelegate {
+        @Binding var text: String
+        @Binding var isEditing: Bool
+        let length: Int
+        var onComplete: () -> Void
+
+        init(text: Binding<String>, isEditing: Binding<Bool>, length: Int, onComplete: @escaping () -> Void) {
+            _text = text
+            _isEditing = isEditing
+            self.length = length
+            self.onComplete = onComplete
+        }
+
+        func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+            let current = textField.text ?? ""
+            guard let swiftRange = Range(range, in: current) else { return false }
+            let updated = current.replacingCharacters(in: swiftRange, with: string)
+            let filtered = String(updated.filter { $0.isLetter || $0.isNumber }.prefix(length))
+            text = filtered
+            textField.text = filtered
+            if filtered.count == length {
+                DispatchQueue.main.async { self.onComplete() }
+            }
+            return false
+        }
+
+        func textFieldDidBeginEditing(_ textField: UITextField) {
+            isEditing = true
+        }
+
+        func textFieldDidEndEditing(_ textField: UITextField) {
+            isEditing = false
         }
     }
 }

@@ -6,173 +6,227 @@
 //
 
 import UIKit
+import SwiftUI
 import Social
 import InterclipShared
-import CoreImage.CIFilterBuiltins
 
-extension UIColor {
-    static var userBackground: UIColor {
-        return UIColor { traitCollection in
-            switch traitCollection.userInterfaceStyle {
-            case .dark:
-                return UIColor.black
-            default:
-                return UIColor.white
+// MARK: - Entry point
+
+class ShareViewController: UIViewController {
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
+              let attachment = item.attachments?.first,
+              attachment.hasItemConformingToTypeIdentifier("public.url") else {
+            cancelWithError("No URL found.")
+            return
+        }
+
+        attachment.loadItem(forTypeIdentifier: "public.url", options: nil) { [weak self] data, _ in
+            guard let self else { return }
+            guard let url = data as? URL else {
+                DispatchQueue.main.async { self.cancelWithError("Couldn't load the URL.") }
+                return
             }
+            DispatchQueue.main.async { self.embed(url: url.absoluteString) }
         }
     }
 
-    static var userText: UIColor {
-        return UIColor { traitCollection in
-            switch traitCollection.userInterfaceStyle {
-            case .dark:
-                return UIColor.white
-            default:
-                return UIColor.black
-            }
+    private func embed(url: String) {
+        let viewModel = ShareViewModel(url: url)
+        let shareView = ShareView(viewModel: viewModel) { [weak self] in
+            self?.extensionContext?.completeRequest(returningItems: nil)
         }
+        let host = UIHostingController(rootView: shareView)
+        host.view.backgroundColor = .clear
+        addChild(host)
+        view.addSubview(host.view)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: view.topAnchor),
+            host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        host.didMove(toParent: self)
     }
 
-    static var userAccent: UIColor {
-        return UIColor { traitCollection in
-            switch traitCollection.userInterfaceStyle {
-            case .dark:
-                return UIColor.systemBlue
-            default:
-                return UIColor.systemBlue
+    private func cancelWithError(_ message: String) {
+        let alert = UIAlertController(title: "Interclip", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.extensionContext?.cancelRequest(
+                withError: NSError(domain: "com.interclip", code: -1,
+                                   userInfo: [NSLocalizedDescriptionKey: message])
+            )
+        })
+        present(alert, animated: true)
+    }
+}
+
+// MARK: - View model
+
+final class ShareViewModel: ObservableObject {
+    @Published var isLoading = true
+    @Published var clipCode: String?
+    @Published var errorMessage: String?
+
+    let url: String
+
+    init(url: String) {
+        self.url = url
+        Task.detached(priority: .userInitiated) {
+            createClip(url: url) { [weak self] result in
+                // ClipService dispatches completion on the main thread
+                switch result {
+                case .success(let code):
+                    self?.clipCode = code
+                    self?.isLoading = false
+                case .failure(let error):
+                    self?.errorMessage = error.localizedDescription
+                    self?.isLoading = false
+                }
             }
         }
     }
 }
 
-class ShareViewController: UIViewController {
+// MARK: - SwiftUI view
 
-    private var url: String?
-    private var clipCode: String?
+private struct ShareView: View {
+    @ObservedObject var viewModel: ShareViewModel
+    var onDone: () -> Void
 
-    private let urlLabel = UILabel()
-    private let clipCodeLabel = UILabel()
-    private let qrCodeImageView = UIImageView()
-    private let copyButton = UIButton(type: .system)
-    private let activityIndicator = UIActivityIndicatorView(style: .large)
+    @Environment(\.colorScheme) var colorScheme
+    @State private var qrCode: UIImage = UIImage(systemName: "qrcode")!
+    @State private var copied = false
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag handle
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color(UIColor.systemGray4))
+                .frame(width: 36, height: 5)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
 
-        view.backgroundColor = .userBackground
-        setupUI()
+            // Header
+            VStack(spacing: 4) {
+                HStack(spacing: 6) {
+                    InterclipLogo()
+                        .frame(width: 22, height: 22)
+                    Text("Interclip")
+                        .font(.headline)
+                }
+                Text(viewModel.url)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 28)
 
-        if let item = self.extensionContext?.inputItems.first as? NSExtensionItem,
-           let attachment = item.attachments?.first {
-            if attachment.hasItemConformingToTypeIdentifier("public.url") {
-                let isDark = traitCollection.userInterfaceStyle == .dark
-                attachment.loadItem(forTypeIdentifier: "public.url", options: nil) { [weak self] (data, error) in
-                    if let url = data as? URL {
-                        self?.url = url.absoluteString
-                        DispatchQueue.main.async { self?.urlLabel.text = url.absoluteString }
-                        self?.generateQRCodeAndDisplay(for: url.absoluteString, isDark: isDark)
-                        self?.createClipAndComplete()
-                    } else {
-                        self?.showError(message: "Failed to retrieve URL")
+            // Content
+            if viewModel.isLoading {
+                Spacer()
+                VStack(spacing: 12) {
+                    ProgressView().controlSize(.large)
+                    Text("Creating clip…")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+
+            } else if let error = viewModel.errorMessage {
+                Spacer()
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.orange)
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                Spacer()
+                doneButton.padding(.horizontal).padding(.bottom, 8)
+
+            } else if let code = viewModel.clipCode {
+                Image(uiImage: qrCode)
+                    .resizable()
+                    .interpolation(.none)
+                    .scaledToFit()
+                    .frame(maxWidth: 200)
+                    .padding(.bottom, 20)
+
+                GroupBox {
+                    VStack(spacing: 8) {
+                        Label("Your code", systemImage: "tag")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(code)
+                            .font(.system(.title, design: .monospaced, weight: .semibold))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .textSelection(.enabled)
                     }
                 }
-            } else {
-                showError(message: "No valid URL found")
-            }
-        } else {
-            showError(message: "No input items found")
-        }
-    }
+                .padding(.horizontal)
+                .padding(.bottom, 16)
 
-    private func setupUI() {
-        let stackView = UIStackView(arrangedSubviews: [urlLabel, qrCodeImageView, clipCodeLabel, copyButton])
-        stackView.axis = .vertical
-        stackView.alignment = .center
-        stackView.spacing = 20
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stackView)
+                HStack(spacing: 12) {
+                    Button {
+                        UIPasteboard.general.string = code
+                        triggerHapticFeedback(type: .success)
+                        withAnimation(.spring(duration: 0.3)) { copied = true }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation(.spring(duration: 0.3)) { copied = false }
+                        }
+                    } label: {
+                        Label(
+                            copied ? "Copied!" : "Copy code",
+                            systemImage: copied ? "checkmark" : "doc.on.doc"
+                        )
+                        .frame(maxWidth: .infinity)
+                        .contentTransition(.symbolEffect(.replace))
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .tint(copied ? .green : .blue)
+                    .animation(.spring(duration: 0.3), value: copied)
 
-        urlLabel.textAlignment = .center
-        urlLabel.textColor = .userText
-        urlLabel.numberOfLines = 2
-
-        qrCodeImageView.contentMode = .scaleAspectFit
-        qrCodeImageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.6).isActive = true
-        qrCodeImageView.heightAnchor.constraint(equalTo: qrCodeImageView.widthAnchor).isActive = true
-
-        clipCodeLabel.textAlignment = .center
-        clipCodeLabel.font = UIFont.boldSystemFont(ofSize: 24)
-        clipCodeLabel.textColor = .userText
-        clipCodeLabel.numberOfLines = 1
-
-        copyButton.setTitle("Copy Code", for: .normal)
-        copyButton.tintColor = .userAccent
-        copyButton.addTarget(self, action: #selector(copyCode), for: .touchUpInside)
-        copyButton.isHidden = true
-
-        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(activityIndicator)
-        activityIndicator.startAnimating()
-        activityIndicator.color = .userAccent
-
-        NSLayoutConstraint.activate([
-            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-
-            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-    }
-
-    private func createClipAndComplete() {
-        guard let url = self.url else {
-            showError(message: "URL is missing")
-            return
-        }
-
-        createClip(url: url) { [weak self] result in
-            guard let self = self else { return }
-
-            DispatchQueue.main.async {
-                self.activityIndicator.stopAnimating()
-            }
-
-            switch result {
-            case .success(let clipCode):
-                DispatchQueue.main.async {
-                    self.clipCode = clipCode
-                    self.clipCodeLabel.text = clipCode
-                    self.copyButton.isHidden = false
+                    doneButton
                 }
-
-            case .failure(let error):
-                self.showError(message: error.localizedDescription)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(UIColor.systemBackground))
+        .onChange(of: viewModel.clipCode) { generateQRCode() }
+        .onChange(of: colorScheme) { generateQRCode() }
     }
 
-    @objc private func copyCode() {
-        guard let clipCode = clipCode else { return }
-        UIPasteboard.general.string = clipCode
-
-        triggerHapticFeedback(type: .success)
-    }
-
-    private func showError(message: String) {
-        DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
-                self.extensionContext?.cancelRequest(withError: NSError(domain: "com.interclip", code: -1, userInfo: [NSLocalizedDescriptionKey: message]))
-            }))
-            self.present(alert, animated: true, completion: nil)
+    private var doneButton: some View {
+        Button(action: onDone) {
+            Text("Done").frame(maxWidth: .infinity)
         }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
     }
 
-    private func generateQRCodeAndDisplay(for urlString: String, isDark: Bool) {
-        let qrImage = QrCodeImage.shared.generateQRCode(from: urlString, isDark: isDark)
-        DispatchQueue.main.async {
-            self.qrCodeImageView.image = qrImage
+    private func generateQRCode() {
+        guard let code = viewModel.clipCode else { return }
+        let isDark = colorScheme == .dark
+        Task.detached(priority: .userInitiated) {
+            let image = QrCodeImage.shared.generateQRCode(
+                from: "https://interclip.app/\(code)", isDark: isDark
+            )
+            await MainActor.run { qrCode = image }
         }
     }
 }
