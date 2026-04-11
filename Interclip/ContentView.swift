@@ -23,18 +23,11 @@ struct ContentView: View {
                     Text("Receive")
                 }
         }
+        .tint(.blue)
     }
 }
 
-struct HandleView: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 2.5)
-            .fill(Color.gray.opacity(0.5))
-            .frame(width: 40, height: 5)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
-    }
-}
+// MARK: - Create
 
 struct CreateClipView: View {
     @State private var urlString: String = ""
@@ -44,160 +37,106 @@ struct CreateClipView: View {
     @State private var clipCode: String?
     @State private var isLoading: Bool = false
     @State private var shouldShowQrCodeSheet: Bool = false
-    @State private var qrCode: UIImage = UIImage(systemName: "xmark.circle")!
-    @Environment(\.colorScheme) var colorScheme
-
     @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 16) {
                 Spacer()
 
-                Text("Paste a URL below to get a code")
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 12)
+                TextField("https://...", text: $urlString)
+                    .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                    .disableAutocorrection(true)
+                    .focused($isTextFieldFocused)
+                    .onSubmit { dismissKeyboardAndSubmit() }
+                    .submitLabel(.go)
 
-                VStack {
-                    TextField("https://...", text: $urlString)
-                        .padding()
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(10)
-                        .padding(.bottom, 20)
-                        .shadow(color: Color(UIColor.label).opacity(0.15), radius: 2)
-                        .autocapitalization(.none)
-                        .keyboardType(.URL)
-                        .focused($isTextFieldFocused)
-                        .disableAutocorrection(true)
-                        .frame(minWidth: 120, maxWidth: 450)
-                        .onSubmit {
-                            dismissKeyboardAndSubmit()
-                        }
-                    Button(action: {
-                        isTextFieldFocused = false
-                        submitURL()
-                    }) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text("Create clip")
-                                    .font(.system(.title3, design: .rounded))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .frame(height: 54)
-                        .frame(maxWidth: 230)
-                    }
-                    .background(isLoading ? Color.gray : Color.blue) // Button color changes if loading
-                    .clipShape(Capsule())
-                    .padding()
-                    .disabled(isLoading)
+                Button {
+                    isTextFieldFocused = false
+                    submitURL()
+                } label: {
+                    Text("Create clip")
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .opacity(isLoading ? 0 : 1)
                 }
-                .padding(.bottom, 50)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isLoading || urlString.isEmpty)
+                .overlay {
+                    if isLoading { ProgressView().tint(.white) }
+                }
 
-                Text(clipCode ?? "")
-                    .padding()
-                    .font(.system(.title, design: .monospaced, weight: .regular))
+                if let clipCode {
+                    GroupBox {
+                        VStack(spacing: 8) {
+                            Label("Your code", systemImage: "tag")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Text(clipCode)
+                                .font(.system(.title, design: .monospaced, weight: .semibold))
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .textSelection(.enabled)
+                                .contentTransition(.numericText())
+                        }
+                    }
                     .contextMenu {
-                        Button(action: {
+                        Button {
                             UIPasteboard.general.string = clipCode
-                        }) {
+                        } label: {
                             Label("Copy", systemImage: "doc.on.doc")
                         }
-                        Button(action: {
+                        Button {
                             shouldShowQrCodeSheet = true
-                        }) {
+                        } label: {
                             Label("Show QR code", systemImage: "qrcode")
                         }
-                        Button(action: {
-                            let url = URL(string: "https://interclip.app/\(clipCode ?? "")")!
-                            let activityViewController = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
-                                keyWindow.rootViewController?.present(activityViewController, animated: true, completion: nil)
+                        Button {
+                            let url = URL(string: "https://interclip.app/\(clipCode)")!
+                            let activity = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let window = scene.windows.first(where: { $0.isKeyWindow }) {
+                                window.rootViewController?.present(activity, animated: true)
                             }
-                        }) {
+                        } label: {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
                     }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
 
                 Spacer()
             }
-            .frame(maxWidth: .infinity)
             .padding()
-            .background(Color(UIColor.systemGray6))
-            .navigationBarTitle("Create a clip", displayMode: .large)
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text("URL Submission"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            .navigationTitle("Create a clip")
+            .navigationBarTitleDisplayMode(.large)
+            .alert("URL Submission", isPresented: $showAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(alertMessage)
             }
-
             .sheet(isPresented: $shouldShowQrCodeSheet) {
-                if let clipCode = clipCode {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                shouldShowQrCodeSheet = false
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.gray)
-                                    .padding()
-                            }
-                        }
-
-                        Spacer()
-                        Image(uiImage: qrCode)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 300, height: 300)
-                            .onAppear(perform: generateQRCode)
-                            .onChange(of: colorScheme) {
-                                generateQRCode()
-                            }
-                        Text(clipCode).font(.system(.title, design: .monospaced, weight: .regular)).padding()
-                        Spacer()
-                    }
-                    .background(Color(.systemBackground))
-                } else if clipCode == nil {
-                    Text("No clipCode present")
+                if let clipCode {
+                    QRCodeSheet(clipCode: clipCode)
+                        .presentationDetents([.medium])
+                        .presentationDragIndicator(.visible)
                 }
             }
-        }
-    }
-
-    func generateQRCode() {
-        let isDark = colorScheme == .dark
-        let code = clipCode ?? ""
-        Task.detached(priority: .userInitiated) {
-            let image = QrCodeImage.shared.generateQRCode(from: "https://interclip.app/\(code)", isDark: isDark)
-            await MainActor.run { qrCode = image }
         }
     }
 
     func dismissKeyboardAndSubmit() {
-        // Dismiss the keyboard
         isTextFieldFocused = false
-
-        if urlString.isEmpty || urlString == urlStringRequested {
-            return
-        }
-
+        if urlString.isEmpty || urlString == urlStringRequested { return }
         submitURL()
     }
 
-    // Function to handle URL submission
     func submitURL() {
         if urlString.isEmpty {
-            // Light haptic feedback for minor alert
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
+            triggerHapticFeedback(type: .light)
             return
         }
 
@@ -206,30 +145,63 @@ struct CreateClipView: View {
         guard let url = URL(string: urlString), UIApplication.shared.canOpenURL(url) else {
             alertMessage = "Invalid URL. Please enter a valid URL."
             showAlert = true
-
             triggerHapticFeedback(type: .medium)
             return
         }
 
-        self.isLoading = true
+        isLoading = true
 
         createClip(url: urlString) { result in
             switch result {
-            case .success(let clipCode):
-                self.clipCode = clipCode
-
+            case .success(let code):
+                withAnimation(.spring()) { self.clipCode = code }
                 triggerHapticFeedback(type: .success)
             case .failure(let error):
                 self.alertMessage = "Error: \(error.localizedDescription)"
                 self.showAlert = true
-
                 triggerHapticFeedback(type: .error)
             }
-
             self.isLoading = false
         }
     }
 }
+
+// MARK: - QR Sheet
+
+private struct QRCodeSheet: View {
+    let clipCode: String
+    @State private var qrCode: UIImage = UIImage(systemName: "xmark.circle")!
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Image(uiImage: qrCode)
+                .resizable()
+                .interpolation(.none)
+                .scaledToFit()
+                .frame(maxWidth: 280)
+            Text(clipCode)
+                .font(.system(.title, design: .monospaced, weight: .semibold))
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .onAppear { generateQRCode() }
+        .onChange(of: colorScheme) { generateQRCode() }
+    }
+
+    private func generateQRCode() {
+        let isDark = colorScheme == .dark
+        let code = clipCode
+        Task.detached(priority: .userInitiated) {
+            let image = QrCodeImage.shared.generateQRCode(from: "https://interclip.app/\(code)", isDark: isDark)
+            await MainActor.run { qrCode = image }
+        }
+    }
+}
+
+// MARK: - Receive
 
 struct ReceiveLinkView: View {
     @State private var codeString: String = ""
@@ -237,135 +209,110 @@ struct ReceiveLinkView: View {
     @State private var showAlert: Bool = false
     @State private var urlOfCode: String?
     @State private var isLoading: Bool = false
+    @FocusState private var isCodeFieldFocused: Bool
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 16) {
                 Spacer()
-                VStack {
-                    Text("Paste a code below to get its link")
-                        .font(.body)
-                        .foregroundColor(.gray)
-                        .padding(.bottom, 12)
 
-
-                    TextField("Enter 5 chars", text: Binding(
-                        get: {
-                            self.codeString
-                        },
-                        set: {
-                            self.codeString = String($0.prefix(5))
-                        }
-                    ))
-                    .multilineTextAlignment(.center)
-                    .frame(minWidth: 120, maxWidth: 150)
-                    .padding(10)
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(10)
-                    .padding(.bottom, 20)
-                    .shadow(color: Color(UIColor.label).opacity(0.15), radius: 2)
-                    .autocapitalization(.none)
-                    .keyboardType(.asciiCapable)
-                    .disableAutocorrection(true)
-                    .onSubmit {
-                        dismissKeyboardAndSubmit()
-                    }
-                    .onChange(of: codeString) {
-                        if codeString.count == 5 {
-                            dismissKeyboardAndSubmit()
-                        }
-                    }
-                    .textFieldStyle(PlainTextFieldStyle())
-
-                    Button(action: {
-                        dismissKeyboardAndSubmit()
-                    }) {
-                        HStack {
-                            if isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text("Receive clip")
-                                    .font(.system(.title3, design: .rounded))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                            }
-                        }
-                        .frame(height: 54)
-                        .frame(maxWidth: 230)
-                    }
-                    .background(isLoading ? Color.gray : Color.blue) // Button color changes if loading
-                    .clipShape(Capsule())
-                    .padding()
-                    .disabled(isLoading)
+                TextField("Enter 5 chars", text: Binding(
+                    get: { codeString },
+                    set: { codeString = String($0.prefix(5)) }
+                ))
+                .textFieldStyle(.roundedBorder)
+                .multilineTextAlignment(.center)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.asciiCapable)
+                .disableAutocorrection(true)
+                .focused($isCodeFieldFocused)
+                .onSubmit { dismissKeyboardAndSubmit() }
+                .submitLabel(.go)
+                .onChange(of: codeString) {
+                    if codeString.count == 5 { dismissKeyboardAndSubmit() }
                 }
-                .padding(.bottom, 50)
+
+                Button {
+                    dismissKeyboardAndSubmit()
+                } label: {
+                    Text("Receive clip")
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .opacity(isLoading ? 0 : 1)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isLoading || codeString.isEmpty)
+                .overlay {
+                    if isLoading { ProgressView().tint(.white) }
+                }
 
                 if let url = urlOfCode, !url.isEmpty {
-                    Link(url, destination: URL(string: url)!)
-                        .font(.title2)
-                        .foregroundStyle(.blue)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .textSelection(.enabled)
-                        .contextMenu(menuItems: {
-                            Button {
-                                UIPasteboard.general.string = url
-                            } label: {
-                                Label("Copy link", systemImage: "doc.on.doc")
-                            }
-                            Button {
-                                UIApplication.shared.open(URL(string: url)!)
-                            } label: {
-                                Label("Open link", systemImage: "safari")
-                            }
-                        })
-                } else {
-                    Text(" ")
-                        .padding()
-                        .frame(maxWidth: .infinity)
+                    GroupBox {
+                        VStack(spacing: 8) {
+                            Label("Destination URL", systemImage: "link")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Link(url, destination: URL(string: url)!)
+                                .font(.body)
+                                .foregroundStyle(.blue)
+                                .lineLimit(3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .textSelection(.enabled)
+                        }
+                    }
+                    .contextMenu {
+                        Button {
+                            UIPasteboard.general.string = url
+                        } label: {
+                            Label("Copy link", systemImage: "doc.on.doc")
+                        }
+                        Button {
+                            UIApplication.shared.open(URL(string: url)!)
+                        } label: {
+                            Label("Open in Safari", systemImage: "safari")
+                        }
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
                 Spacer()
             }
             .padding()
-            .background(Color(UIColor.systemGray6))
-            .navigationBarTitle("Receive a clip", displayMode: .large)
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text("Link retrieval"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            .navigationTitle("Receive a clip")
+            .navigationBarTitleDisplayMode(.large)
+            .alert("Link retrieval", isPresented: $showAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(alertMessage)
             }
         }
     }
 
     func dismissKeyboardAndSubmit() {
-        // Dismiss the keyboard
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        isCodeFieldFocused = false
         submitCode()
     }
 
-    // Function to handle URL submission
     func submitCode() {
         guard !codeString.isEmpty else {
             triggerHapticFeedback(type: .light)
             return
         }
 
-        self.isLoading = true
+        isLoading = true
 
         retrieveClip(code: codeString) { result in
             switch result {
-            case .success(let clipCode):
-                self.urlOfCode = clipCode
+            case .success(let url):
+                withAnimation(.spring()) { self.urlOfCode = url }
                 triggerHapticFeedback(type: .success)
-
             case .failure(let error):
                 self.alertMessage = "Error: \(error.localizedDescription)"
                 self.showAlert = true
                 triggerHapticFeedback(type: .error)
             }
-
             self.isLoading = false
         }
     }
