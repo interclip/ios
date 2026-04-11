@@ -34,7 +34,9 @@ final class InterclipUITests: XCTestCase {
         snapshot("03_Settings")
 
         // 4. About page
-        app.tables.staticTexts["About"].tap()
+        let aboutCell = app.tables.staticTexts["About"]
+        XCTAssert(aboutCell.waitForExistence(timeout: 5))
+        aboutCell.tap()
         snapshot("04_About")
     }
 }

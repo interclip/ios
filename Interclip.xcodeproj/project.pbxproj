@@ -22,7 +22,6 @@
 		DC72A90F2C1A2C950005CB7A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC72A90E2C1A2C950005CB7A /* Preview Assets.xcassets */; };
 		DC72A9192C1A2C950005CB7A /* InterclipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9182C1A2C950005CB7A /* InterclipTests.swift */; };
 		DC72A9232C1A2C950005CB7A /* InterclipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */; };
-		DC72A9252C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */; };
 		DC9913DE2C20DE45007A166C /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9913DF2C20DE45007A166C /* SnapshotHelper.swift */; };
 		DC9913D62C20DA71007A166C /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
 		DC9913D72C20DA71007A166C /* InterclipShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -149,7 +148,6 @@
 		DC72A9182C1A2C950005CB7A /* InterclipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipTests.swift; sourceTree = "<group>"; };
 		DC72A91E2C1A2C950005CB7A /* InterclipUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InterclipUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipUITests.swift; sourceTree = "<group>"; };
-		DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterclipUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		DC9913DF2C20DE45007A166C /* SnapshotHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -313,7 +311,6 @@
 			isa = PBXGroup;
 			children = (
 				DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */,
-				DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */,
 				DC9913DF2C20DE45007A166C /* SnapshotHelper.swift */,
 			);
 			path = InterclipUITests;
@@ -601,7 +598,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC72A9232C1A2C950005CB7A /* InterclipUITests.swift in Sources */,
-				DC72A9252C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift in Sources */,
 				DC9913DE2C20DE45007A166C /* SnapshotHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
