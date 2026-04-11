@@ -1,0 +1,36 @@
+name: Screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'Interclip/**'
+      - 'InterclipShared/**'
+      - 'InterclipUITests/**'
+      - 'fastlane/Snapfile'
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+
+      - name: Capture screenshots
+        run: bundle exec fastlane snapshot
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: fastlane/screenshots
+          retention-days: 30

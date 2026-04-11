@@ -1,0 +1,22 @@
+devices([
+  "iPhone 16 Pro Max",
+  "iPhone 16 Pro",
+  "iPhone 16e",
+])
+
+languages([
+  "en-US",
+])
+
+# The scheme that contains the UI test target
+scheme("Interclip")
+app_identifier("com.filiptronicek.iclip")
+
+# Where to save screenshots
+output_directory("./fastlane/screenshots")
+
+# Clean slate each run
+clear_previous_screenshots(true)
+
+# Show a clean status bar (9:41, full battery, full signal)
+override_status_bar(true)
