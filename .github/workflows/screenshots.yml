@@ -24,17 +24,33 @@ jobs:
 
       - name: Select Xcode
         run: |
-          # Pick the latest Xcode available on this runner
           XCODE=$(ls /Applications/ | grep '^Xcode' | grep '\.app$' | sort -V | tail -1)
           echo "Using $XCODE"
           sudo xcode-select -s "/Applications/$XCODE"
           xcodebuild -version
 
-      - name: Detect iOS runtime version
+      - name: Remove simulators from older iOS runtimes
         run: |
-          IOS=$(xcrun simctl list runtimes | grep -E "^iOS " | grep -v unavailable | sort -V | tail -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
-          echo "IOS_VERSION=$IOS" >> $GITHUB_ENV
-          echo "Detected iOS $IOS"
+          python3 - <<'EOF'
+          import subprocess, json
+
+          rts = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'runtimes', '--json']))['runtimes']
+          ios = [r for r in rts if r.get('name', '').startswith('iOS') and r.get('isAvailable')]
+          ios.sort(key=lambda r: list(map(int, r['version'].split('.'))))
+          if len(ios) <= 1:
+              print("Only one iOS runtime, nothing to remove")
+              exit(0)
+
+          keep = ios[-1]['identifier']
+          print(f"Keeping: {ios[-1]['name']} ({keep})")
+
+          devs = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', '--json']))['devices']
+          for rt, sims in devs.items():
+              if rt.startswith('com.apple.CoreSimulator.SimRuntime.iOS') and rt != keep:
+                  for sim in sims:
+                      subprocess.run(['xcrun', 'simctl', 'delete', sim['udid']], capture_output=True)
+                  print(f"Cleaned: {rt}")
+          EOF
 
       - name: Capture screenshots
         run: bundle exec fastlane snapshot

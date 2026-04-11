@@ -1,9 +1,6 @@
-ios = ENV["IOS_VERSION"]
-suffix = ios ? " (#{ios})" : ""
-
 devices([
-  "iPhone 16 Pro Max#{suffix}",
-  "iPhone 16 Pro#{suffix}",
+  "iPhone 16 Pro Max",
+  "iPhone 16 Pro",
 ])
 
 languages([
