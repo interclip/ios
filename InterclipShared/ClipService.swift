@@ -8,20 +8,19 @@
 import Foundation
 
 public func createClip(url: String, completion: @escaping (Result<String, Error>) -> Void) {
-    let endpoint = "https://server.interclip.app/api/clip"
-    
+    let endpoint = "https://interclip.app/api/set"
+
     guard let requestURL = URL(string: endpoint) else {
         completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid endpoint URL"])))
         return
     }
-    
+
     var request = URLRequest(url: requestURL)
     request.httpMethod = "POST"
-    request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
-    
-    // Encode URL parameter
-    let bodyData = "url=\(url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
-    request.httpBody = bodyData.data(using: .utf8)
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    let bodyData = try? JSONSerialization.data(withJSONObject: ["url": url])
+    request.httpBody = bodyData
     
     URLSession.shared.dataTask(with: request) { data, response, error in
         guard let data = data, error == nil else {
@@ -59,8 +58,8 @@ public func createClip(url: String, completion: @escaping (Result<String, Error>
 }
 
 public func retrieveClip(code: String, completion: @escaping (Result<String, Error>) -> Void) {
-    let endpoint = "https://server.interclip.app/api/clip"
-    
+    let endpoint = "https://interclip.app/api/get"
+
     // Construct URLComponents to handle query parameters
     var urlComponents = URLComponents(string: endpoint)
     urlComponents?.queryItems = [URLQueryItem(name: "code", value: code)]
