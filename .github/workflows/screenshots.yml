@@ -31,12 +31,7 @@ jobs:
           xcodebuild -version
 
       - name: List available simulators
-        run: xcrun simctl list devices available --json | python3 -c "
-          import json, sys
-          d = json.load(sys.stdin)['devices']
-          iphones = [(rt, dev['name']) for rt, devs in d.items() for dev in devs if 'iPhone' in dev['name']]
-          [print(rt, '-', n) for rt, n in sorted(iphones)[-20:]]
-        "
+        run: xcrun simctl list devices available | grep iPhone
 
       - name: Capture screenshots
         run: bundle exec fastlane snapshot
