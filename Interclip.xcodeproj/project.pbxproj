@@ -14,12 +14,7 @@
 		DC3777802C1DDC050065C302 /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
 		DC3777872C1DDC050065C302 /* InterclipSharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC3777862C1DDC050065C302 /* InterclipSharedTests.swift */; };
 		DC3777882C1DDC050065C302 /* InterclipShared.h in Headers */ = {isa = PBXBuildFile; fileRef = DC3777782C1DDC050065C302 /* InterclipShared.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		DC37778B2C1DDC050065C302 /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
-		DC37778C2C1DDC050065C302 /* InterclipShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		DC3777952C1DDC600065C302 /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
 		DC37779B2C1DDC820065C302 /* ClipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC37779A2C1DDC7E0065C302 /* ClipService.swift */; };
-		DC37779C2C1DDDF00065C302 /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
-		DC37779D2C1DDDF00065C302 /* InterclipShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DC3777A22C1DE7DC0065C302 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC3777A12C1DE7DA0065C302 /* Helpers.swift */; };
 		DC72A9082C1A2C940005CB7A /* InterclipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9072C1A2C940005CB7A /* InterclipApp.swift */; };
 		DC72A90A2C1A2C940005CB7A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9092C1A2C940005CB7A /* ContentView.swift */; };
@@ -28,6 +23,9 @@
 		DC72A9192C1A2C950005CB7A /* InterclipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9182C1A2C950005CB7A /* InterclipTests.swift */; };
 		DC72A9232C1A2C950005CB7A /* InterclipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */; };
 		DC72A9252C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9242C1A2C950005CB7A /* InterclipUITestsLaunchTests.swift */; };
+		DC9913D62C20DA71007A166C /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
+		DC9913D72C20DA71007A166C /* InterclipShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		DC9913D92C20DAC0007A166C /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +92,13 @@
 			remoteGlobalIDString = DC72A9032C1A2C940005CB7A;
 			remoteInfo = Interclip;
 		};
+		DC9913DC2C20DE45007A166C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC72A8FC2C1A2C940005CB7A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DC37775C2C1DDA8D0065C302;
+			remoteInfo = ShareTarget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -108,24 +113,13 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		DC37778D2C1DDC050065C302 /* Embed Frameworks */ = {
+		DC9913D82C20DA71007A166C /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				DC37778C2C1DDC050065C302 /* InterclipShared.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		DC3777A02C1DDDF00065C302 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				DC37779D2C1DDDF00065C302 /* InterclipShared.framework in Embed Frameworks */,
+				DC9913D72C20DA71007A166C /* InterclipShared.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -177,7 +171,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DC37779C2C1DDDF00065C302 /* InterclipShared.framework in Frameworks */,
+				DC9913D92C20DAC0007A166C /* InterclipShared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,8 +194,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DC3777952C1DDC600065C302 /* InterclipShared.framework in Frameworks */,
-				DC37778B2C1DDC050065C302 /* InterclipShared.framework in Frameworks */,
+				DC9913D62C20DA71007A166C /* InterclipShared.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,7 +337,6 @@
 				DC3777592C1DDA8D0065C302 /* Sources */,
 				DC37775A2C1DDA8D0065C302 /* Frameworks */,
 				DC37775B2C1DDA8D0065C302 /* Resources */,
-				DC3777A02C1DDDF00065C302 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -401,7 +393,7 @@
 				DC72A9012C1A2C940005CB7A /* Frameworks */,
 				DC72A9022C1A2C940005CB7A /* Resources */,
 				DC37776B2C1DDA8D0065C302 /* Embed Foundation Extensions */,
-				DC37778D2C1DDC050065C302 /* Embed Frameworks */,
+				DC9913D82C20DA71007A166C /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -410,6 +402,7 @@
 				DC37778A2C1DDC050065C302 /* PBXTargetDependency */,
 				DC3777972C1DDC600065C302 /* PBXTargetDependency */,
 				DC3777992C1DDC6D0065C302 /* PBXTargetDependency */,
+				DC9913DD2C20DE45007A166C /* PBXTargetDependency */,
 			);
 			name = Interclip;
 			productName = Interclip;
@@ -656,6 +649,11 @@
 			isa = PBXTargetDependency;
 			target = DC72A9032C1A2C940005CB7A /* Interclip */;
 			targetProxy = DC72A91F2C1A2C950005CB7A /* PBXContainerItemProxy */;
+		};
+		DC9913DD2C20DE45007A166C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DC37775C2C1DDA8D0065C302 /* ShareTarget */;
+			targetProxy = DC9913DC2C20DE45007A166C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -949,13 +947,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Interclip/Preview Content\"";
 				DEVELOPMENT_TEAM = 9K37685DN3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Interclip/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Interclip;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -964,7 +965,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -978,13 +979,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Interclip/Preview Content\"";
 				DEVELOPMENT_TEAM = 9K37685DN3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Interclip/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Interclip;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -993,7 +997,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
