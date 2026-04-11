@@ -354,10 +354,59 @@ struct SettingsView: View {
                 } footer: {
                     Text("Show the QR code sheet as soon as a clip is created.")
                 }
+
+                Section {
+                    NavigationLink("About") { AboutView() }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+}
+
+// MARK: - About
+
+private struct AboutView: View {
+    private let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+    private let build   = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: 16) {
+                // Full app icon: logo paths on the branded blue background
+                InterclipLogo()
+                    .padding(22)
+                    .frame(width: 110, height: 110)
+                    .background(
+                        RoundedRectangle(cornerRadius: 35, style: .continuous)
+                            .fill(Color(red: 0x15 / 255.0, green: 0x7E / 255.0, blue: 0xFB / 255.0))
+                    )
+
+                VStack(spacing: 4) {
+                    Text("Interclip")
+                        .font(.title2.weight(.bold))
+                    Text("Version \(version) (\(build))")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            Link(destination: URL(string: "https://interclip.app")!) {
+                Label("Open interclip.app", systemImage: "globe")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
+            .padding(.bottom, 32)
+        }
+        .navigationTitle("About")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
