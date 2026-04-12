@@ -90,42 +90,7 @@ struct CreateClipView: View {
                 }
 
                 if let clipCode {
-                    GroupBox {
-                        VStack(spacing: 8) {
-                            Label("Your code", systemImage: "tag")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text(clipCode)
-                                .font(.system(.title, design: .monospaced, weight: .semibold))
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .textSelection(.enabled)
-                                .contentTransition(.numericText())
-                        }
-                    }
-                    .contextMenu {
-                        Button {
-                            UIPasteboard.general.string = clipCode
-                        } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
-                        }
-                        Button {
-                            shouldShowQrCodeSheet = true
-                        } label: {
-                            Label("Show QR code", systemImage: "qrcode")
-                        }
-                        Button {
-                            let url = URL(string: "https://interclip.app/\(clipCode)")!
-                            let activity = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-                            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                               let window = scene.windows.first(where: { $0.isKeyWindow }) {
-                                window.rootViewController?.present(activity, animated: true)
-                            }
-                        } label: {
-                            Label("Share", systemImage: "square.and.arrow.up")
-                        }
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    ClipCodeBox(code: clipCode, onShowQRCode: { shouldShowQrCodeSheet = true })
                 }
 
                 Spacer()
@@ -188,6 +153,52 @@ struct CreateClipView: View {
             }
             self.isLoading = false
         }
+    }
+}
+
+// MARK: - Clip Code Box
+
+private struct ClipCodeBox: View {
+    let code: String
+    var onShowQRCode: (() -> Void)? = nil
+
+    var body: some View {
+        GroupBox {
+            VStack(spacing: 2) {
+                Text("interclip.app/")
+                    .font(.system(.caption, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                Text(code)
+                    .font(.system(.title, design: .monospaced, weight: .semibold))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .textSelection(.enabled)
+                    .contentTransition(.numericText())
+            }
+        }
+        .contextMenu {
+            Button {
+                UIPasteboard.general.string = code
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+            if let onShowQRCode {
+                Button(action: onShowQRCode) {
+                    Label("Show QR code", systemImage: "qrcode")
+                }
+            }
+            Button {
+                let url = URL(string: "https://interclip.app/\(code)")!
+                let activity = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = scene.windows.first(where: { $0.isKeyWindow }) {
+                    window.rootViewController?.present(activity, animated: true)
+                }
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 }
 
@@ -417,7 +428,7 @@ struct UploadFileView: View {
                 }
 
                 if let clipCode {
-                    clipCodeBox(code: clipCode)
+                    ClipCodeBox(code: clipCode, onShowQRCode: { shouldShowQrCodeSheet = true })
                     Button {
                         clearAll()
                     } label: {
@@ -558,43 +569,6 @@ struct UploadFileView: View {
             }
         }
         .padding(.vertical, 8)
-    }
-
-    // MARK: Result
-
-    private func clipCodeBox(code: String) -> some View {
-        GroupBox {
-            VStack(spacing: 8) {
-                Label("Your code", systemImage: "tag")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text(code)
-                    .font(.system(.title, design: .monospaced, weight: .semibold))
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .textSelection(.enabled)
-                    .contentTransition(.numericText())
-            }
-        }
-        .contextMenu {
-            Button { UIPasteboard.general.string = code } label: {
-                Label("Copy", systemImage: "doc.on.doc")
-            }
-            Button { shouldShowQrCodeSheet = true } label: {
-                Label("Show QR code", systemImage: "qrcode")
-            }
-            Button {
-                let url = URL(string: "https://interclip.app/\(code)")!
-                let activity = UIActivityViewController(activityItems: [url], applicationActivities: nil)
-                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                   let window = scene.windows.first(where: { $0.isKeyWindow }) {
-                    window.rootViewController?.present(activity, animated: true)
-                }
-            } label: {
-                Label("Share", systemImage: "square.and.arrow.up")
-            }
-        }
-        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     // MARK: Computed
