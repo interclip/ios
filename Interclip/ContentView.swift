@@ -202,6 +202,90 @@ private struct ClipCodeBox: View {
     }
 }
 
+// MARK: - File Preview Box
+
+private struct FilePreviewBox: View {
+    let fileURL: URL
+
+    private var fileName: String { fileURL.lastPathComponent }
+
+    private var systemIcon: String {
+        guard !fileURL.pathExtension.isEmpty,
+              let type = UTType(filenameExtension: fileURL.pathExtension) else { return "doc.fill" }
+        if type.conforms(to: .image)   { return "photo.fill" }
+        if type.conforms(to: .audio)   { return "music.note" }
+        if type.conforms(to: .movie)   { return "film.fill" }
+        if type.conforms(to: .pdf)     { return "doc.richtext.fill" }
+        if type.conforms(to: .archive) { return "archivebox.fill" }
+        if type.conforms(to: .text)    { return "doc.text.fill" }
+        return "doc.fill"
+    }
+
+    private var typeDescription: String {
+        guard !fileURL.pathExtension.isEmpty,
+              let type = UTType(filenameExtension: fileURL.pathExtension) else { return "File" }
+        return type.localizedDescription ?? "File"
+    }
+
+    var body: some View {
+        GroupBox {
+            VStack(spacing: 16) {
+                Image(systemName: systemIcon)
+                    .font(.system(size: 48))
+                    .foregroundStyle(.blue)
+                    .padding(.top, 4)
+
+                VStack(spacing: 4) {
+                    Text(fileName)
+                        .font(.subheadline.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(4)
+                    Text(typeDescription)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                HStack(spacing: 10) {
+                    Button {
+                        UIApplication.shared.open(fileURL)
+                    } label: {
+                        Label("Open", systemImage: "arrow.up.right.square")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+
+                    Button {
+                        let activity = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let window = scene.windows.first(where: { $0.isKeyWindow }) {
+                            window.rootViewController?.present(activity, animated: true)
+                        }
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.regular)
+                }
+            }
+        }
+        .contextMenu {
+            Button {
+                UIPasteboard.general.string = fileURL.absoluteString
+            } label: {
+                Label("Copy link", systemImage: "doc.on.doc")
+            }
+            Button {
+                UIApplication.shared.open(fileURL)
+            } label: {
+                Label("Open in Safari", systemImage: "safari")
+            }
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+}
+
 // MARK: - QR Sheet
 
 private struct QRCodeSheet: View {
@@ -278,38 +362,43 @@ struct ReceiveLinkView: View {
                     if isLoading { ProgressView().tint(.white) }
                 }
 
-                if let url = urlOfCode, !url.isEmpty {
-                    GroupBox {
-                        VStack(spacing: 8) {
-                            Label("Destination URL", systemImage: "link")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                            Text(url)
-                                .font(.body)
-                                .foregroundStyle(.blue)
-                                .lineLimit(3)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .textSelection(.enabled)
-                                .onTapGesture {
-                                    UIApplication.shared.open(URL(string: url)!)
-                                }
+                if let urlString = urlOfCode, !urlString.isEmpty {
+                    if urlString.hasPrefix("https://files.interclip.app/"),
+                       let fileURL = URL(string: urlString) {
+                        FilePreviewBox(fileURL: fileURL)
+                    } else if let parsed = URL(string: urlString) {
+                        GroupBox {
+                            VStack(spacing: 8) {
+                                Label("Destination URL", systemImage: "link")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Text(urlString)
+                                    .font(.body)
+                                    .foregroundStyle(.blue)
+                                    .lineLimit(3)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .textSelection(.enabled)
+                                    .onTapGesture {
+                                        UIApplication.shared.open(parsed)
+                                    }
+                            }
                         }
+                        .contextMenu {
+                            Button {
+                                UIPasteboard.general.string = urlString
+                            } label: {
+                                Label("Copy link", systemImage: "doc.on.doc")
+                            }
+                            Button {
+                                UIApplication.shared.open(parsed)
+                            } label: {
+                                Label("Open in Safari", systemImage: "safari")
+                            }
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
-                    .contextMenu {
-                        Button {
-                            UIPasteboard.general.string = url
-                        } label: {
-                            Label("Copy link", systemImage: "doc.on.doc")
-                        }
-                        Button {
-                            UIApplication.shared.open(URL(string: url)!)
-                        } label: {
-                            Label("Open in Safari", systemImage: "safari")
-                        }
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
                 Spacer()
