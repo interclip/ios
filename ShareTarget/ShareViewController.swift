@@ -1,6 +1,6 @@
 //
 //  ShareViewController.swift
-//  ShareTarget
+//  Interclip
 //
 //  Created by Filip Troníček on 15.06.2024.
 //
@@ -9,6 +9,7 @@ import UIKit
 import SwiftUI
 import Social
 import InterclipShared
+import UniformTypeIdentifiers
 
 // MARK: - Entry point
 
@@ -18,24 +19,59 @@ class ShareViewController: UIViewController {
         super.viewDidLoad()
 
         guard let item = extensionContext?.inputItems.first as? NSExtensionItem,
-              let attachment = item.attachments?.first,
-              attachment.hasItemConformingToTypeIdentifier("public.url") else {
-            cancelWithError("No URL found.")
+              let attachment = item.attachments?.first else {
+            cancelWithError("No content found.")
             return
         }
 
-        attachment.loadItem(forTypeIdentifier: "public.url", options: nil) { [weak self] data, _ in
-            guard let self else { return }
-            guard let url = data as? URL else {
-                DispatchQueue.main.async { self.cancelWithError("Couldn't load the URL.") }
-                return
+        if attachment.hasItemConformingToTypeIdentifier("public.url") {
+            // Web URL → create clip directly
+            attachment.loadItem(forTypeIdentifier: "public.url", options: nil) { [weak self] data, _ in
+                guard let self else { return }
+                guard let url = data as? URL else {
+                    DispatchQueue.main.async { self.cancelWithError("Couldn't load the URL.") }
+                    return
+                }
+                DispatchQueue.main.async {
+                    self.embed(viewModel: ShareViewModel(url: url.absoluteString))
+                }
             }
-            DispatchQueue.main.async { self.embed(url: url.absoluteString) }
+        } else {
+            // File → upload to S3, then create clip
+            loadAndEmbedFile(attachment: attachment)
         }
     }
 
-    private func embed(url: String) {
-        let viewModel = ShareViewModel(url: url)
+    // Loads the file data off-thread, then presents the upload sheet on the main thread.
+    private func loadAndEmbedFile(attachment: NSItemProvider) {
+        // Use the most-specific registered type so we get the native format (e.g. HEIC not JPEG).
+        let typeID = attachment.registeredTypeIdentifiers.first ?? "public.data"
+
+        attachment.loadFileRepresentation(forTypeIdentifier: typeID) { [weak self] url, error in
+            guard let self else { return }
+            guard let url else {
+                DispatchQueue.main.async {
+                    self.cancelWithError(error?.localizedDescription ?? "Failed to load file.")
+                }
+                return
+            }
+
+            // Read while the temp URL is still valid (it's only guaranteed inside this callback).
+            let name = url.lastPathComponent
+            guard let fileData = try? Data(contentsOf: url) else {
+                DispatchQueue.main.async { self.cancelWithError("Failed to read file data.") }
+                return
+            }
+
+            let mimeType = UTType(typeID)?.preferredMIMEType ?? "application/octet-stream"
+
+            DispatchQueue.main.async {
+                self.embed(viewModel: ShareViewModel(fileName: name, fileData: fileData, mimeType: mimeType))
+            }
+        }
+    }
+
+    private func embed(viewModel: ShareViewModel) {
         let shareView = ShareView(viewModel: viewModel) { [weak self] in
             self?.extensionContext?.completeRequest(returningItems: nil)
         }
@@ -68,17 +104,35 @@ class ShareViewController: UIViewController {
 // MARK: - View model
 
 final class ShareViewModel: ObservableObject {
+    enum Content {
+        case url(String)
+        case file(name: String)
+    }
+
     @Published var isLoading = true
     @Published var clipCode: String?
     @Published var errorMessage: String?
+    @Published var uploadProgress: Double = 0
 
-    let url: String
+    let content: Content
 
+    var displayTitle: String {
+        switch content {
+        case .url(let s): return s
+        case .file(let name): return name
+        }
+    }
+
+    var isFileUpload: Bool {
+        if case .file = content { return true }
+        return false
+    }
+
+    /// URL clip path (existing behaviour).
     init(url: String) {
-        self.url = url
+        self.content = .url(url)
         Task.detached(priority: .userInitiated) {
             createClip(url: url) { [weak self] result in
-                // ClipService dispatches completion on the main thread
                 switch result {
                 case .success(let code):
                     self?.clipCode = code
@@ -88,6 +142,31 @@ final class ShareViewModel: ObservableObject {
                     self?.isLoading = false
                 }
             }
+        }
+    }
+
+    /// File upload path — calls uploadFile() from InterclipShared then creates a clip.
+    init(fileName: String, fileData: Data, mimeType: String) {
+        self.content = .file(name: fileName)
+        Task.detached(priority: .userInitiated) {
+            uploadFile(
+                fileData: fileData,
+                fileName: fileName,
+                mimeType: mimeType,
+                progress: { [weak self] p in
+                    DispatchQueue.main.async { self?.uploadProgress = p }
+                },
+                completion: { [weak self] result in
+                    switch result {
+                    case .success(let code):
+                        self?.clipCode = code
+                        self?.isLoading = false
+                    case .failure(let error):
+                        self?.errorMessage = error.localizedDescription
+                        self?.isLoading = false
+                    }
+                }
+            )
         }
     }
 }
@@ -119,12 +198,7 @@ private struct ShareView: View {
                     Text("Interclip")
                         .font(.headline)
                 }
-                Text(viewModel.url)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .frame(maxWidth: .infinity, alignment: .center)
+                headerSubtitle
             }
             .padding(.horizontal)
             .padding(.bottom, 28)
@@ -132,12 +206,7 @@ private struct ShareView: View {
             // Content
             if viewModel.isLoading {
                 Spacer()
-                VStack(spacing: 12) {
-                    ProgressView().controlSize(.large)
-                    Text("Creating clip…")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                loadingContent
                 Spacer()
 
             } else if let error = viewModel.errorMessage {
@@ -209,6 +278,49 @@ private struct ShareView: View {
         .background(Color(UIColor.systemBackground))
         .onChange(of: viewModel.clipCode) { generateQRCode() }
         .onChange(of: colorScheme) { generateQRCode() }
+    }
+
+    // Shows the URL or a file icon + filename depending on what was shared.
+    @ViewBuilder
+    private var headerSubtitle: some View {
+        switch viewModel.content {
+        case .url(let urlString):
+            Text(urlString)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .center)
+        case .file(let name):
+            Label(name, systemImage: "doc.fill")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+
+    // Shows a progress bar while bytes are being sent; falls back to a spinner otherwise.
+    @ViewBuilder
+    private var loadingContent: some View {
+        if viewModel.isFileUpload, viewModel.uploadProgress > 0 {
+            VStack(spacing: 8) {
+                ProgressView(value: viewModel.uploadProgress)
+                    .tint(.blue)
+                    .padding(.horizontal, 32)
+                Text("\(Int(viewModel.uploadProgress * 100))%")
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            VStack(spacing: 12) {
+                ProgressView().controlSize(.large)
+                Text(viewModel.isFileUpload ? "Uploading file…" : "Creating clip…")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     private var doneButton: some View {

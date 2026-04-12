@@ -7,6 +7,8 @@
 
 import SwiftUI
 import InterclipShared
+import PhotosUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     var body: some View {
@@ -15,6 +17,12 @@ struct ContentView: View {
                 .tabItem {
                     Image(systemName: "paperplane.fill")
                     Text("Send")
+                }
+
+            UploadFileView()
+                .tabItem {
+                    Image(systemName: "arrow.up.doc.fill")
+                    Text("Files")
                 }
 
             ReceiveLinkView()
@@ -339,6 +347,449 @@ struct ReceiveLinkView: View {
                     triggerHapticFeedback(type: .error)
                 }
                 self.isLoading = false
+            }
+        }
+    }
+}
+
+// MARK: - Upload
+
+private struct SelectedFile: Identifiable {
+    let id = UUID()
+    let url: URL
+    let name: String
+    let size: Int64
+
+    var formattedSize: String {
+        ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+    }
+
+    var systemIcon: String {
+        guard let type = UTType(filenameExtension: url.pathExtension) else { return "doc" }
+        if type.conforms(to: .image)   { return "photo" }
+        if type.conforms(to: .audio)   { return "music.note" }
+        if type.conforms(to: .movie)   { return "film" }
+        if type.conforms(to: .pdf)     { return "doc.richtext" }
+        if type.conforms(to: .archive) { return "archivebox" }
+        if type.conforms(to: .text)    { return "doc.text" }
+        return "doc"
+    }
+}
+
+struct UploadFileView: View {
+    @State private var selectedFiles: [SelectedFile] = []
+    @State private var isShowingDocumentPicker = false
+    @State private var isShowingPhotoPicker = false
+    @State private var isUploading = false
+    @State private var uploadProgress: Double = 0
+    @State private var clipCode: String?
+    @State private var alertMessage: String = ""
+    @State private var showAlert: Bool = false
+    @State private var shouldShowQrCodeSheet: Bool = false
+    @AppStorage("autoShowQRCode") private var autoShowQRCode = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Spacer()
+
+                if selectedFiles.isEmpty {
+                    emptyState
+                } else {
+                    fileListView
+                }
+
+                if !selectedFiles.isEmpty, clipCode == nil {
+                    if isUploading, uploadProgress > 0 {
+                        uploadProgressBar
+                    }
+
+                    Button {
+                        performUpload()
+                    } label: {
+                        Text(uploadButtonLabel)
+                            .font(.system(.title3, design: .rounded, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .opacity(isUploading ? 0 : 1)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(isUploading)
+                    .overlay {
+                        if isUploading { ProgressView().tint(.white) }
+                    }
+                }
+
+                if let clipCode {
+                    clipCodeBox(code: clipCode)
+                }
+
+                Spacer()
+            }
+            .padding()
+            .frame(maxWidth: 480)
+            .frame(maxWidth: .infinity)
+            .navigationTitle("Upload a file")
+            .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $isShowingDocumentPicker) {
+                DocumentPickerView { urls in loadFiles(from: urls) }
+            }
+            .sheet(isPresented: $isShowingPhotoPicker) {
+                PhotoPickerView { photos in loadPhotos(photos) }
+            }
+            .sheet(isPresented: $shouldShowQrCodeSheet) {
+                if let clipCode {
+                    QRCodeSheet(clipCode: clipCode)
+                        .presentationDetents([.medium])
+                        .presentationDragIndicator(.visible)
+                }
+            }
+            .alert("Upload Error", isPresented: $showAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(alertMessage)
+            }
+        }
+    }
+
+    // MARK: Empty state
+
+    private var emptyState: some View {
+        HStack(spacing: 12) {
+            pickerOption(icon: "doc.fill", title: "Files") {
+                isShowingDocumentPicker = true
+            }
+            pickerOption(icon: "photo.fill", title: "Photos") {
+                isShowingPhotoPicker = true
+            }
+        }
+    }
+
+    private func pickerOption(icon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 32))
+                    .foregroundStyle(.blue)
+                Text(title)
+                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
+            .background(Color(UIColor.secondarySystemFill))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color(UIColor.systemGray4), style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: File list
+
+    private var fileListView: some View {
+        VStack(spacing: 8) {
+            GroupBox {
+                VStack(spacing: 0) {
+                    ForEach(Array(selectedFiles.enumerated()), id: \.element.id) { index, file in
+                        if index > 0 { Divider().padding(.leading, 44) }
+                        fileRow(file: file, index: index)
+                    }
+                }
+            }
+
+            if !isUploading {
+                HStack {
+                    Button {
+                        isShowingDocumentPicker = true
+                    } label: {
+                        Label("Add files", systemImage: "doc.badge.plus")
+                            .font(.subheadline)
+                    }
+                    Spacer()
+                    Button {
+                        isShowingPhotoPicker = true
+                    } label: {
+                        Label("Add photos", systemImage: "photo.badge.plus")
+                            .font(.subheadline)
+                    }
+                }
+                .padding(.horizontal, 4)
+            }
+        }
+    }
+
+    private func fileRow(file: SelectedFile, index: Int) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: file.systemIcon)
+                .font(.system(size: 20))
+                .foregroundStyle(.blue)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(file.name)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                Text(file.formattedSize)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !isUploading {
+                Button {
+                    withAnimation(.spring()) {
+                        try? FileManager.default.removeItem(at: file.url)
+                        selectedFiles.remove(at: index)
+                        if selectedFiles.isEmpty { clipCode = nil }
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+
+    // MARK: Progress + result
+
+    private var uploadProgressBar: some View {
+        VStack(spacing: 6) {
+            ProgressView(value: uploadProgress).tint(.blue)
+            HStack {
+                Text("Uploading…").font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                Text("\(Int(uploadProgress * 100))%")
+                    .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func clipCodeBox(code: String) -> some View {
+        GroupBox {
+            VStack(spacing: 8) {
+                Label("Your code", systemImage: "tag")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(code)
+                    .font(.system(.title, design: .monospaced, weight: .semibold))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .textSelection(.enabled)
+                    .contentTransition(.numericText())
+            }
+        }
+        .contextMenu {
+            Button { UIPasteboard.general.string = code } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+            Button { shouldShowQrCodeSheet = true } label: {
+                Label("Show QR code", systemImage: "qrcode")
+            }
+            Button {
+                let url = URL(string: "https://interclip.app/\(code)")!
+                let activity = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = scene.windows.first(where: { $0.isKeyWindow }) {
+                    window.rootViewController?.present(activity, animated: true)
+                }
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    // MARK: Computed
+
+    private var uploadButtonLabel: String {
+        selectedFiles.count == 1 ? "Upload file" : "Upload \(selectedFiles.count) files as ZIP"
+    }
+
+    // MARK: File loading
+
+    private func loadFiles(from urls: [URL]) {
+        var newFiles: [SelectedFile] = []
+        for url in urls {
+            guard url.startAccessingSecurityScopedResource() else { continue }
+            let name = url.lastPathComponent
+            let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+            let size = Int64((attrs?[.size] as? Int) ?? 0)
+            let tempURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString + "_" + name)
+            guard (try? FileManager.default.copyItem(at: url, to: tempURL)) != nil else {
+                url.stopAccessingSecurityScopedResource()
+                continue
+            }
+            url.stopAccessingSecurityScopedResource()
+            newFiles.append(SelectedFile(url: tempURL, name: name, size: size))
+        }
+        withAnimation(.spring()) {
+            selectedFiles.append(contentsOf: newFiles)
+            clipCode = nil
+        }
+    }
+
+    private func loadPhotos(_ photos: [(name: String, data: Data)]) {
+        var newFiles: [SelectedFile] = []
+        for (name, data) in photos {
+            let tempURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString + "_" + name)
+            guard (try? data.write(to: tempURL)) != nil else { continue }
+            newFiles.append(SelectedFile(url: tempURL, name: name, size: Int64(data.count)))
+        }
+        withAnimation(.spring()) {
+            selectedFiles.append(contentsOf: newFiles)
+            clipCode = nil
+        }
+    }
+
+    // MARK: Upload
+
+    private func performUpload() {
+        guard !selectedFiles.isEmpty else { return }
+
+        let uploadData: Data
+        let uploadName: String
+        let uploadMime: String
+
+        if selectedFiles.count == 1 {
+            let file = selectedFiles[0]
+            guard let data = try? Data(contentsOf: file.url) else {
+                alertMessage = "Failed to read file."
+                showAlert = true
+                return
+            }
+            uploadData = data
+            uploadName = file.name
+            uploadMime = mimeType(for: file.url)
+        } else {
+            // Build a ZIP of all selected files
+            let entries: [ZipEntry] = selectedFiles.compactMap { file in
+                guard let data = try? Data(contentsOf: file.url) else { return nil }
+                return ZipEntry(filename: file.name, data: data)
+            }
+            guard entries.count == selectedFiles.count else {
+                alertMessage = "Failed to read one or more files."
+                showAlert = true
+                return
+            }
+            uploadData = createZip(entries: entries)
+            uploadName = "interclip-files.zip"
+            uploadMime = "application/zip"
+        }
+
+        isUploading = true
+        uploadProgress = 0
+
+        Task.detached(priority: .userInitiated) {
+            uploadFile(
+                fileData: uploadData,
+                fileName: uploadName,
+                mimeType: uploadMime,
+                progress: { p in DispatchQueue.main.async { self.uploadProgress = p } },
+                completion: { result in
+                    switch result {
+                    case .success(let code):
+                        withAnimation(.spring()) { self.clipCode = code }
+                        if self.autoShowQRCode { self.shouldShowQrCodeSheet = true }
+                        triggerHapticFeedback(type: .success)
+                    case .failure(let error):
+                        self.alertMessage = "Error: \(error.localizedDescription)"
+                        self.showAlert = true
+                        triggerHapticFeedback(type: .error)
+                    }
+                    self.isUploading = false
+                }
+            )
+        }
+    }
+
+    private func mimeType(for url: URL) -> String {
+        guard !url.pathExtension.isEmpty,
+              let type = UTType(filenameExtension: url.pathExtension),
+              let mime = type.preferredMIMEType else {
+            return "application/octet-stream"
+        }
+        return mime
+    }
+}
+
+// MARK: - Pickers
+
+private struct DocumentPickerView: UIViewControllerRepresentable {
+    let onPick: ([URL]) -> Void
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item], asCopy: false)
+        picker.allowsMultipleSelection = true
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
+
+    class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onPick: ([URL]) -> Void
+        init(onPick: @escaping ([URL]) -> Void) { self.onPick = onPick }
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            onPick(urls)
+        }
+    }
+}
+
+private struct PhotoPickerView: UIViewControllerRepresentable {
+    let onPick: ([(name: String, data: Data)]) -> Void
+
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var config = PHPickerConfiguration()
+        config.selectionLimit = 0   // 0 = unlimited
+        config.filter = .images
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
+
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let onPick: ([(name: String, data: Data)]) -> Void
+        init(onPick: @escaping ([(name: String, data: Data)]) -> Void) { self.onPick = onPick }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            picker.dismiss(animated: true)
+            guard !results.isEmpty else { return }
+
+            let group = DispatchGroup()
+            let lock = NSLock()
+            var picked: [(index: Int, name: String, data: Data)] = []
+
+            for (i, result) in results.enumerated() {
+                guard result.itemProvider.canLoadObject(ofClass: UIImage.self) else { continue }
+                group.enter()
+                result.itemProvider.loadObject(ofClass: UIImage.self) { object, _ in
+                    defer { group.leave() }
+                    guard let image = object as? UIImage,
+                          let jpeg = image.jpegData(compressionQuality: 0.85) else { return }
+                    let name = result.itemProvider.suggestedName.map { "\($0).jpg" }
+                        ?? "photo_\(i + 1).jpg"
+                    lock.lock()
+                    picked.append((i, name, jpeg))
+                    lock.unlock()
+                }
+            }
+
+            group.notify(queue: .main) {
+                let sorted = picked.sorted { $0.index < $1.index }
+                    .map { (name: $0.name, data: $0.data) }
+                self.onPick(sorted)
             }
         }
     }
