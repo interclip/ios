@@ -123,6 +123,8 @@ struct CreateClipView: View {
                 Spacer()
             }
             .padding()
+            .frame(maxWidth: 480)
+            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
             .onTapGesture { isTextFieldFocused = false }
             .navigationTitle("Create a clip")
@@ -296,6 +298,8 @@ struct ReceiveLinkView: View {
                 Spacer()
             }
             .padding()
+            .frame(maxWidth: 480)
+            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
             .onTapGesture {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -410,6 +414,8 @@ private struct AboutView: View {
             .controlSize(.large)
             .padding(.horizontal)
             .padding(.bottom, 32)
+            .frame(maxWidth: 480)
+            .frame(maxWidth: .infinity)
         }
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
