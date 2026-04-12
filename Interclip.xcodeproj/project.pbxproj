@@ -22,10 +22,10 @@
 		DC72A90F2C1A2C950005CB7A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DC72A90E2C1A2C950005CB7A /* Preview Assets.xcassets */; };
 		DC72A9192C1A2C950005CB7A /* InterclipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9182C1A2C950005CB7A /* InterclipTests.swift */; };
 		DC72A9232C1A2C950005CB7A /* InterclipUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC72A9222C1A2C950005CB7A /* InterclipUITests.swift */; };
-		DC9913DE2C20DE45007A166C /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9913DF2C20DE45007A166C /* SnapshotHelper.swift */; };
 		DC9913D62C20DA71007A166C /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
 		DC9913D72C20DA71007A166C /* InterclipShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DC9913D92C20DAC0007A166C /* InterclipShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3777762C1DDC050065C302 /* InterclipShared.framework */; };
+		DC9913DE2C20DE45007A166C /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9913DF2C20DE45007A166C /* SnapshotHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -685,7 +685,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.ShareTarget;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.ShareTarget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -710,7 +710,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.ShareTarget;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.ShareTarget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -742,7 +742,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.InterclipShared;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.InterclipShared;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -777,7 +777,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.InterclipShared;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.InterclipShared;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -797,7 +797,7 @@
 				DEVELOPMENT_TEAM = 9K37685DN3;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.InterclipSharedTests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.nterclipSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -814,7 +814,7 @@
 				DEVELOPMENT_TEAM = 9K37685DN3;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.InterclipSharedTests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.nterclipSharedTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -966,7 +966,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -998,7 +998,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1016,7 +1016,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.Tests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -1035,7 +1035,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.Tests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -1052,7 +1052,7 @@
 				DEVELOPMENT_TEAM = 9K37685DN3;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.UITests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -1069,7 +1069,7 @@
 				DEVELOPMENT_TEAM = 9K37685DN3;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.filiptronicek.iclip.UITests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.interclip.ios.UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;

@@ -175,20 +175,18 @@ struct CreateClipView: View {
 
         isLoading = true
 
-        Task.detached(priority: .userInitiated) {
-            createClip(url: urlString) { result in
-                switch result {
-                case .success(let code):
-                    withAnimation(.spring()) { self.clipCode = code }
-                    if self.autoShowQRCode { self.shouldShowQrCodeSheet = true }
-                    triggerHapticFeedback(type: .success)
-                case .failure(let error):
-                    self.alertMessage = "Error: \(error.localizedDescription)"
-                    self.showAlert = true
-                    triggerHapticFeedback(type: .error)
-                }
-                self.isLoading = false
+        createClip(url: urlString) { result in
+            switch result {
+            case .success(let code):
+                withAnimation(.spring()) { self.clipCode = code }
+                if self.autoShowQRCode { self.shouldShowQrCodeSheet = true }
+                triggerHapticFeedback(type: .success)
+            case .failure(let error):
+                self.alertMessage = "Error: \(error.localizedDescription)"
+                self.showAlert = true
+                triggerHapticFeedback(type: .error)
             }
+            self.isLoading = false
         }
     }
 }
@@ -332,22 +330,20 @@ struct ReceiveLinkView: View {
 
         isLoading = true
 
-        Task.detached(priority: .userInitiated) {
-            retrieveClip(code: codeString) { result in
-                switch result {
-                case .success(let url):
-                    withAnimation(.spring()) { self.urlOfCode = url }
-                    if self.autoOpenLinks, let openURL = URL(string: url) {
-                        UIApplication.shared.open(openURL)
-                    }
-                    triggerHapticFeedback(type: .success)
-                case .failure(let error):
-                    self.alertMessage = "Error: \(error.localizedDescription)"
-                    self.showAlert = true
-                    triggerHapticFeedback(type: .error)
+        retrieveClip(code: codeString) { result in
+            switch result {
+            case .success(let url):
+                withAnimation(.spring()) { self.urlOfCode = url }
+                if self.autoOpenLinks, let openURL = URL(string: url) {
+                    UIApplication.shared.open(openURL)
                 }
-                self.isLoading = false
+                triggerHapticFeedback(type: .success)
+            case .failure(let error):
+                self.alertMessage = "Error: \(error.localizedDescription)"
+                self.showAlert = true
+                triggerHapticFeedback(type: .error)
             }
+            self.isLoading = false
         }
     }
 }
@@ -401,7 +397,7 @@ struct UploadFileView: View {
 
                 if !selectedFiles.isEmpty, clipCode == nil {
                     if isUploading, uploadProgress > 0 {
-                        uploadProgressBar
+                        ProgressView(value: uploadProgress).tint(.blue)
                     }
 
                     Button {
@@ -422,6 +418,13 @@ struct UploadFileView: View {
 
                 if let clipCode {
                     clipCodeBox(code: clipCode)
+                    Button {
+                        clearAll()
+                    } label: {
+                        Text("New upload").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
 
                 Spacer()
@@ -501,20 +504,21 @@ struct UploadFileView: View {
             }
 
             if !isUploading {
-                HStack {
+                Menu {
                     Button {
                         isShowingDocumentPicker = true
                     } label: {
-                        Label("Add files", systemImage: "doc.badge.plus")
-                            .font(.subheadline)
+                        Label("Files", systemImage: "doc.badge.plus")
                     }
-                    Spacer()
                     Button {
                         isShowingPhotoPicker = true
                     } label: {
-                        Label("Add photos", systemImage: "photo.badge.plus")
-                            .font(.subheadline)
+                        Label("Photos", systemImage: "photo.badge.plus")
                     }
+                } label: {
+                    Label("Add more", systemImage: "plus")
+                        .font(.subheadline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding(.horizontal, 4)
             }
@@ -556,19 +560,7 @@ struct UploadFileView: View {
         .padding(.vertical, 8)
     }
 
-    // MARK: Progress + result
-
-    private var uploadProgressBar: some View {
-        VStack(spacing: 6) {
-            ProgressView(value: uploadProgress).tint(.blue)
-            HStack {
-                Text("Uploading…").font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                Text("\(Int(uploadProgress * 100))%")
-                    .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-            }
-        }
-    }
+    // MARK: Result
 
     private func clipCodeBox(code: String) -> some View {
         GroupBox {
@@ -687,26 +679,35 @@ struct UploadFileView: View {
         isUploading = true
         uploadProgress = 0
 
-        Task.detached(priority: .userInitiated) {
-            uploadFile(
-                fileData: uploadData,
-                fileName: uploadName,
-                mimeType: uploadMime,
-                progress: { p in DispatchQueue.main.async { self.uploadProgress = p } },
-                completion: { result in
-                    switch result {
-                    case .success(let code):
-                        withAnimation(.spring()) { self.clipCode = code }
-                        if self.autoShowQRCode { self.shouldShowQrCodeSheet = true }
-                        triggerHapticFeedback(type: .success)
-                    case .failure(let error):
-                        self.alertMessage = "Error: \(error.localizedDescription)"
-                        self.showAlert = true
-                        triggerHapticFeedback(type: .error)
-                    }
-                    self.isUploading = false
+        uploadFile(
+            fileData: uploadData,
+            fileName: uploadName,
+            mimeType: uploadMime,
+            progress: { p in DispatchQueue.main.async { self.uploadProgress = p } },
+            completion: { result in
+                switch result {
+                case .success(let code):
+                    withAnimation(.spring()) { self.clipCode = code }
+                    if self.autoShowQRCode { self.shouldShowQrCodeSheet = true }
+                    triggerHapticFeedback(type: .success)
+                case .failure(let error):
+                    self.alertMessage = "Error: \(error.localizedDescription)"
+                    self.showAlert = true
+                    triggerHapticFeedback(type: .error)
                 }
-            )
+                self.isUploading = false
+            }
+        )
+    }
+
+    private func clearAll() {
+        for file in selectedFiles {
+            try? FileManager.default.removeItem(at: file.url)
+        }
+        withAnimation(.spring()) {
+            selectedFiles = []
+            clipCode = nil
+            uploadProgress = 0
         }
     }
 
