@@ -204,8 +204,61 @@ private struct ClipCodeBox: View {
 
 // MARK: - File Preview Box
 
+private final class FileDownloader: NSObject, ObservableObject, URLSessionDownloadDelegate {
+    @Published var progress: Double = 0
+    @Published var downloadedURL: URL?
+    @Published var isDownloading = false
+    @Published var errorMessage: String?
+
+    private var session: URLSession?
+    private var targetName = ""
+
+    func start(from remoteURL: URL, fileName: String) {
+        targetName = fileName
+        isDownloading = true
+        progress = 0
+        errorMessage = nil
+        let s = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        self.session = s
+        s.downloadTask(with: remoteURL).resume()
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                    didWriteData _: Int64, totalBytesWritten: Int64,
+                    totalBytesExpectedToWrite total: Int64) {
+        guard total > 0 else { return }
+        DispatchQueue.main.async { self.progress = Double(totalBytesWritten) / Double(total) }
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                    didFinishDownloadingTo location: URL) {
+        let dest = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString + "_" + targetName)
+        try? FileManager.default.moveItem(at: location, to: dest)
+        DispatchQueue.main.async {
+            self.isDownloading = false
+            self.downloadedURL = dest
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        guard let error else { return }
+        DispatchQueue.main.async {
+            self.isDownloading = false
+            self.errorMessage = error.localizedDescription
+        }
+    }
+
+    deinit {
+        if let url = downloadedURL {
+            try? FileManager.default.removeItem(at: url)
+        }
+    }
+}
+
 private struct FilePreviewBox: View {
     let fileURL: URL
+    @StateObject private var downloader = FileDownloader()
 
     private var fileName: String { fileURL.lastPathComponent }
 
@@ -245,6 +298,13 @@ private struct FilePreviewBox: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if let err = downloader.errorMessage {
+                    Text(err)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                }
+
                 HStack(spacing: 10) {
                     Button {
                         UIApplication.shared.open(fileURL)
@@ -255,18 +315,43 @@ private struct FilePreviewBox: View {
                     .buttonStyle(.bordered)
                     .controlSize(.regular)
 
+                    // Save / re-share button — downloads the file on first tap,
+                    // then presents a share sheet with the local URL so iOS offers
+                    // "Save to Files", "Save Image/Video", AirDrop, etc.
                     Button {
-                        let activity = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
-                        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let window = scene.windows.first(where: { $0.isKeyWindow }) {
-                            window.rootViewController?.present(activity, animated: true)
+                        if let local = downloader.downloadedURL {
+                            presentShareSheet(url: local)
+                        } else {
+                            downloader.start(from: fileURL, fileName: fileName)
                         }
                     } label: {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                            .frame(maxWidth: .infinity)
+                        Group {
+                            if downloader.isDownloading {
+                                if downloader.progress > 0 {
+                                    Text("\(Int(downloader.progress * 100))%")
+                                        .font(.system(.subheadline, design: .monospaced))
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    ProgressView().tint(.white).frame(maxWidth: .infinity)
+                                }
+                            } else {
+                                Label(
+                                    downloader.downloadedURL != nil ? "Share" : "Save",
+                                    systemImage: downloader.downloadedURL != nil
+                                        ? "square.and.arrow.up" : "arrow.down.to.line"
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.regular)
+                    .disabled(downloader.isDownloading)
+                    .onChange(of: downloader.downloadedURL) {
+                        if let local = downloader.downloadedURL {
+                            presentShareSheet(url: local)
+                        }
+                    }
                 }
             }
         }
@@ -283,6 +368,14 @@ private struct FilePreviewBox: View {
             }
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    private func presentShareSheet(url: URL) {
+        let activity = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first(where: { $0.isKeyWindow }) {
+            window.rootViewController?.present(activity, animated: true)
+        }
     }
 }
 
@@ -366,6 +459,7 @@ struct ReceiveLinkView: View {
                     if urlString.hasPrefix("https://files.interclip.app/"),
                        let fileURL = URL(string: urlString) {
                         FilePreviewBox(fileURL: fileURL)
+                            .id(fileURL)
                     } else if let parsed = URL(string: urlString) {
                         GroupBox {
                             VStack(spacing: 8) {
@@ -690,13 +784,12 @@ struct UploadFileView: View {
         }
     }
 
-    private func loadPhotos(_ photos: [(name: String, data: Data)]) {
+    private func loadPhotos(_ files: [(name: String, url: URL)]) {
         var newFiles: [SelectedFile] = []
-        for (name, data) in photos {
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString + "_" + name)
-            guard (try? data.write(to: tempURL)) != nil else { continue }
-            newFiles.append(SelectedFile(url: tempURL, name: name, size: Int64(data.count)))
+        for (name, url) in files {
+            let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+            let size = Int64((attrs?[.size] as? Int) ?? 0)
+            newFiles.append(SelectedFile(url: url, name: name, size: size))
         }
         withAnimation(.spring()) {
             selectedFiles.append(contentsOf: newFiles)
@@ -809,12 +902,12 @@ private struct DocumentPickerView: UIViewControllerRepresentable {
 }
 
 private struct PhotoPickerView: UIViewControllerRepresentable {
-    let onPick: ([(name: String, data: Data)]) -> Void
+    let onPick: ([(name: String, url: URL)]) -> Void
 
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
         config.selectionLimit = 0   // 0 = unlimited
-        config.filter = .images
+        config.filter = .any(of: [.images, .videos])
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator
         return picker
@@ -824,8 +917,8 @@ private struct PhotoPickerView: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick) }
 
     class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        let onPick: ([(name: String, data: Data)]) -> Void
-        init(onPick: @escaping ([(name: String, data: Data)]) -> Void) { self.onPick = onPick }
+        let onPick: ([(name: String, url: URL)]) -> Void
+        init(onPick: @escaping ([(name: String, url: URL)]) -> Void) { self.onPick = onPick }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             picker.dismiss(animated: true)
@@ -833,26 +926,44 @@ private struct PhotoPickerView: UIViewControllerRepresentable {
 
             let group = DispatchGroup()
             let lock = NSLock()
-            var picked: [(index: Int, name: String, data: Data)] = []
+            var picked: [(index: Int, name: String, url: URL)] = []
 
             for (i, result) in results.enumerated() {
-                guard result.itemProvider.canLoadObject(ofClass: UIImage.self) else { continue }
-                group.enter()
-                result.itemProvider.loadObject(ofClass: UIImage.self) { object, _ in
-                    defer { group.leave() }
-                    guard let image = object as? UIImage,
-                          let jpeg = image.jpegData(compressionQuality: 0.85) else { return }
-                    let name = result.itemProvider.suggestedName.map { "\($0).jpg" }
-                        ?? "photo_\(i + 1).jpg"
-                    lock.lock()
-                    picked.append((i, name, jpeg))
-                    lock.unlock()
+                let provider = result.itemProvider
+
+                if provider.canLoadObject(ofClass: UIImage.self) {
+                    // Image → convert to JPEG and write to a temp file
+                    group.enter()
+                    provider.loadObject(ofClass: UIImage.self) { object, _ in
+                        defer { group.leave() }
+                        guard let image = object as? UIImage,
+                              let jpeg = image.jpegData(compressionQuality: 0.85) else { return }
+                        let name = provider.suggestedName.map { "\($0).jpg" }
+                            ?? "photo_\(i + 1).jpg"
+                        let dest = FileManager.default.temporaryDirectory
+                            .appendingPathComponent(UUID().uuidString + "_" + name)
+                        guard (try? jpeg.write(to: dest)) != nil else { return }
+                        lock.lock(); picked.append((i, name, dest)); lock.unlock()
+                    }
+                } else if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+                    // Video → copy the original file to temp (avoid loading large data into memory)
+                    group.enter()
+                    provider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, _ in
+                        defer { group.leave() }
+                        guard let url else { return }
+                        let ext = url.pathExtension
+                        let name = provider.suggestedName.map { "\($0).\(ext)" } ?? url.lastPathComponent
+                        let dest = FileManager.default.temporaryDirectory
+                            .appendingPathComponent(UUID().uuidString + "_" + name)
+                        guard (try? FileManager.default.copyItem(at: url, to: dest)) != nil else { return }
+                        lock.lock(); picked.append((i, name, dest)); lock.unlock()
+                    }
                 }
             }
 
             group.notify(queue: .main) {
                 let sorted = picked.sorted { $0.index < $1.index }
-                    .map { (name: $0.name, data: $0.data) }
+                    .map { (name: $0.name, url: $0.url) }
                 self.onPick(sorted)
             }
         }
