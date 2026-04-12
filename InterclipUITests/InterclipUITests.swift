@@ -25,18 +25,22 @@ final class InterclipUITests: XCTestCase {
         // 1. Send tab — empty state
         snapshot("01_Send")
 
-        // 2. Receive tab — empty state
+        // 2. Files tab — file upload
+        app.tabBars.buttons["Files"].tap()
+        snapshot("02_Files")
+
+        // 3. Receive tab — empty state
         app.tabBars.buttons["Receive"].tap()
-        snapshot("02_Receive")
+        snapshot("03_Receive")
 
-        // 3. Settings
+        // 4. Settings
         app.tabBars.buttons["Settings"].tap()
-        snapshot("03_Settings")
+        snapshot("04_Settings")
 
-        // 4. About page
+        // 5. About page
         let aboutCell = app.tables.staticTexts["About"]
         XCTAssert(aboutCell.waitForExistence(timeout: 5))
         aboutCell.tap()
-        snapshot("04_About")
+        snapshot("05_About")
     }
 }
