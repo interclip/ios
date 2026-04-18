@@ -10,12 +10,18 @@ on:
       - 'InterclipUITests/**'
       - 'fastlane/Snapfile'
 
+permissions:
+  contents: write
+
 jobs:
   screenshots:
     runs-on: macos-15
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Need a token that can push back to the branch.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -71,3 +77,125 @@ jobs:
           name: screenshots
           path: fastlane/screenshots
           retention-days: 30
+
+      - name: Install frames-cli and imagehash
+        run: |
+          pip3 install --break-system-packages Pillow imagehash
+          curl -fsSL -o /usr/local/bin/frames https://raw.githubusercontent.com/viticci/frames-cli/main/frames
+          chmod +x /usr/local/bin/frames
+          frames --version
+
+      - name: Cache Apple Frames asset pack
+        id: frames-assets-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/frames-assets
+          # Bump when a new AppleFrames pack ships.
+          key: apple-frames-40
+
+      - name: Download Apple Frames asset pack
+        if: steps.frames-assets-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$HOME/.cache/frames-assets"
+          curl -fsSL -o /tmp/AppleFrames40.zip https://cdn.macstories.net/AppleFrames40.zip
+          rm -rf /tmp/frames-extract
+          mkdir -p /tmp/frames-extract
+          unzip -q /tmp/AppleFrames40.zip -d /tmp/frames-extract
+          # The archive has a top-level folder of arbitrary name; locate it via
+          # NewFrames.json and copy its contents into the cache root.
+          src=$(find /tmp/frames-extract -name NewFrames.json -exec dirname {} \; | head -1)
+          if [ -z "$src" ]; then
+            echo "Could not locate NewFrames.json in AppleFrames40.zip"; exit 1
+          fi
+          cp -R "$src"/. "$HOME/.cache/frames-assets/"
+
+      - name: Frame iPhone 16 Pro screenshots for README
+        run: |
+          export FRAMES_ASSETS="$HOME/.cache/frames-assets"
+          rm -rf docs/screenshots
+          mkdir -p docs/screenshots
+          # Strip the device prefix from filenames so framed output is stable
+          # (e.g. "iPhone 16 Pro-01_Send.png" → "01_Send.png").
+          for src in fastlane/screenshots/en-US/iPhone\ 16\ Pro-*.png; do
+            name="${src##*/iPhone 16 Pro-}"
+            cp "$src" "docs/screenshots/$name"
+          done
+          frames -o docs/screenshots docs/screenshots/*.png
+          # Keep only the framed PNGs in the repo.
+          find docs/screenshots -type f -name '*.png' ! -name '*_framed.png' -delete
+
+      - name: Suppress no-op screenshot diffs (perceptual hash gate)
+        env:
+          # Hamming distance threshold on a 16x16 pHash (256-bit). 0 = identical,
+          # ≤5 ≈ visually identical (encoder/anti-aliasing noise only). Bump if
+          # genuine UI changes are being filtered out.
+          SCREENSHOT_PHASH_THRESHOLD: '5'
+          SCREENSHOT_PHASH_SIZE: '16'
+        run: |
+          python3 - <<'EOF'
+          """Replace each freshly framed PNG with its committed counterpart when
+          the two are perceptually identical. This stops simulator/encoder noise
+          from producing spurious 'screenshot refresh' commits — only meaningful
+          UI changes survive the subsequent `git diff` check.
+          """
+          import os, pathlib, subprocess, sys, tempfile
+          from PIL import Image
+          import imagehash
+
+          THRESHOLD = int(os.environ['SCREENSHOT_PHASH_THRESHOLD'])
+          HASH_SIZE = int(os.environ['SCREENSHOT_PHASH_SIZE'])
+          ROOT = pathlib.Path('docs/screenshots')
+
+          def phash(path):
+              with Image.open(path) as img:
+                  return imagehash.phash(img, hash_size=HASH_SIZE)
+
+          def committed_bytes(rel_path):
+              result = subprocess.run(
+                  ['git', 'show', f'HEAD:{rel_path}'],
+                  capture_output=True,
+              )
+              return result.stdout if result.returncode == 0 else None
+
+          new_or_changed = restored = 0
+          for current in sorted(ROOT.glob('*_framed.png')):
+              rel = current.as_posix()
+              committed = committed_bytes(rel)
+              if committed is None:
+                  print(f'NEW    {rel}')
+                  new_or_changed += 1
+                  continue
+              with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                  tmp.write(committed)
+                  tmp_path = tmp.name
+              try:
+                  distance = phash(current) - phash(tmp_path)
+              finally:
+                  os.unlink(tmp_path)
+              if distance <= THRESHOLD:
+                  print(f'KEEP   {rel}  (pHash distance {distance} ≤ {THRESHOLD})')
+                  current.write_bytes(committed)
+                  restored += 1
+              else:
+                  print(f'CHANGE {rel}  (pHash distance {distance} > {THRESHOLD})')
+                  new_or_changed += 1
+
+          print(f'\nSummary: {new_or_changed} new/changed, {restored} restored to committed bytes.')
+          EOF
+
+      - name: Commit framed screenshots if changed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          # -A picks up deletions too, so screenshots removed from the test plan
+          # also disappear from the repo.
+          git add -A docs/screenshots
+          if git diff --cached --quiet; then
+            echo "No meaningful screenshot changes to commit."
+            exit 0
+          fi
+          git diff --cached --stat
+          git commit -m "chore(screenshots): refresh README screenshots" \
+                     -m "Auto-generated by .github/workflows/screenshots.yml"
+          git push origin HEAD:${{ github.ref_name }}
