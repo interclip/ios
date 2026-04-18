@@ -85,8 +85,33 @@ jobs:
           chmod +x /usr/local/bin/frames
           frames --version
 
+      - name: Cache Apple Frames asset pack
+        id: frames-assets-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/frames-assets
+          # Bump when a new AppleFrames pack ships.
+          key: apple-frames-40
+
+      - name: Download Apple Frames asset pack
+        if: steps.frames-assets-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$HOME/.cache/frames-assets"
+          curl -fsSL -o /tmp/AppleFrames40.zip https://cdn.macstories.net/AppleFrames40.zip
+          rm -rf /tmp/frames-extract
+          mkdir -p /tmp/frames-extract
+          unzip -q /tmp/AppleFrames40.zip -d /tmp/frames-extract
+          # The archive has a top-level folder of arbitrary name; locate it via
+          # NewFrames.json and copy its contents into the cache root.
+          src=$(find /tmp/frames-extract -name NewFrames.json -exec dirname {} \; | head -1)
+          if [ -z "$src" ]; then
+            echo "Could not locate NewFrames.json in AppleFrames40.zip"; exit 1
+          fi
+          cp -R "$src"/. "$HOME/.cache/frames-assets/"
+
       - name: Frame iPhone 16 Pro screenshots for README
         run: |
+          export FRAMES_ASSETS="$HOME/.cache/frames-assets"
           rm -rf docs/screenshots
           mkdir -p docs/screenshots
           # Strip the device prefix from filenames so framed output is stable
